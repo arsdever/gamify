@@ -59,10 +59,10 @@ int main(int argc, char** argv)
 
     exp_window->set_can_grab(true);
 
-    exp_window->get_events()->close += [ &windows ](auto ce)
+    exp_window->get_events().close += [ &windows ](auto ce)
     { std::erase(windows, ce.get_sender()->shared_from_this()); };
 
-    exp_window->get_events()->resize += [](auto re)
+    exp_window->get_events().resize += [](auto re)
     {
         auto wnd = re.get_sender();
         if (auto vp = wnd->get_viewports()[ 0 ])
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
     };
 
     int frame_counter = 0;
-    exp_window->get_events()->render += [ &frame_counter ](auto re)
+    exp_window->get_events().render += [ &frame_counter ](auto re)
     {
         if (frame_counter % 30 == 0)
         {

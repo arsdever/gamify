@@ -55,11 +55,9 @@ public:
     void remove_viewport(std::shared_ptr<viewport> vp);
     std::vector<std::shared_ptr<viewport>> get_viewports();
 
-    std::shared_ptr<window_events> get_events() const;
+    window_events& get_events() const;
 
     event<void(std::shared_ptr<window>)> on_user_initialize;
-
-    static std::shared_ptr<window> get_main_window();
 
 private:
     void setup_mouse_callbacks();
@@ -76,8 +74,6 @@ private:
 private:
     struct window_private_data;
     std::unique_ptr<window_private_data> _p { nullptr };
-
-    static std::shared_ptr<window> _main_window;
 };
 
 } // namespace experimental

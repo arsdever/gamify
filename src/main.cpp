@@ -13,6 +13,7 @@
 #include "components/text_component.hpp"
 #include "components/text_renderer_component.hpp"
 #include "components/walking_component.hpp"
+#include "experimental/editor_window.hpp"
 #include "experimental/input_system.hpp"
 #include "experimental/viewport.hpp"
 #include "experimental/window.hpp"
@@ -235,26 +236,26 @@ int main(int argc, char** argv)
 
 void initMainWindow()
 {
-    windows.push_back(std::make_shared<experimental::window>());
-    auto& wnd = windows.back();
+    auto wnd = experimental::editor_window::get();
+    windows.push_back(wnd);
     wnd->on_user_initialize += [](auto) { load_internal_resources(); };
     wnd->init();
     wnd->resize(800, 800);
-    wnd->get_events()->close += [](auto ce)
+    wnd->get_events().close += [](auto ce)
     { std::erase(windows, ce.get_sender()->shared_from_this()); };
     std::shared_ptr<viewport> vp = std::make_shared<viewport>();
     vp->initialize();
     wnd->add_viewport(vp);
     main_camera = std::make_shared<camera>();
     vp->set_camera(main_camera);
-    wnd->get_events()->resize +=
+    wnd->get_events().resize +=
         [ vp ](auto re) { vp->set_size(re.get_new_size()); };
-    wnd->get_events()->render += [ vp ](auto re)
+    wnd->get_events().render += [ vp ](auto re)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         vp->render();
     };
-    windows.back()->get_events()->resize += [ vp ](auto re)
+    wnd->get_events().resize += [ vp ](auto re)
     {
         vp->set_size(
             { re.get_sender()->get_width(), re.get_sender()->get_height() });
@@ -270,11 +271,11 @@ void initViewports()
     auto wnd = windows.back();
     wnd->init();
     wnd->resize(400, 1200);
-    windows[ 0 ]->set_position(windows[ 1 ]->get_position().x +
-                                   windows[ 1 ]->get_width(),
-                               windows[ 1 ]->get_position().y);
+    experimental::editor_window::get()->set_position(
+        windows[ 1 ]->get_position().x + windows[ 1 ]->get_width(),
+        windows[ 1 ]->get_position().y);
 
-    wnd->get_events()->close += [](auto ce)
+    wnd->get_events().close += [](auto ce)
     { std::erase(windows, ce.get_sender()->shared_from_this()); };
 
     for (int i = 0; i < _view_cameras.size(); ++i)
@@ -286,7 +287,7 @@ void initViewports()
         vp->set_camera(cam);
         cam->set_ortho(true);
         wnd->add_viewport(vp);
-        wnd->get_events()->mouse_scroll += [ cam, vp ](auto we)
+        wnd->get_events().mouse_scroll += [ cam, vp ](auto we)
         {
             auto pos = we.get_local_position();
             pos.y = we.get_sender()->get_height() - pos.y;
@@ -301,7 +302,7 @@ void initViewports()
                 cam->get_transform().get_position() *
                 std::pow<float>(1.2, we.get_delta().y));
         };
-        windows.back()->get_events()->resize += [ vp, i ](auto re)
+        windows.back()->get_events().resize += [ vp, i ](auto re)
         {
             vp->set_size({ re.get_new_size().x, re.get_new_size().y / 3.0 });
             vp->set_position({ 0, re.get_new_size().y / 3.0 * i });
@@ -311,7 +312,7 @@ void initViewports()
         vp->set_position({ 0, wnd->get_height() / 3.0 * i });
     }
 
-    windows.back()->get_events()->render += [](auto re)
+    windows.back()->get_events().render += [](auto re)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (auto vp : re.get_sender()->get_viewports())
@@ -337,8 +338,7 @@ void initViewports()
 
 void setupMouseEvents()
 {
-    experimental::window::get_main_window()->get_events()->mouse_move +=
-        [](auto me)
+    experimental::editor_window::get()->get_events().mouse_move += [](auto me)
     {
         if (me.get_sender()->get_has_grab())
         {

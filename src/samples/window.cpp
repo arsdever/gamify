@@ -3,9 +3,9 @@
 #include <GLFW/glfw3.h>
 /* clang-format on */
 
+#include <functional>
 #include <memory>
 #include <vector>
-#include <functional>
 
 #include <assert.h>
 
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 
     exp_window->set_can_grab(true);
 
-    exp_window->get_events()->close += [ &windows ](auto ce)
+    exp_window->get_events().close += [ &windows ](auto ce)
     {
         (void)ce;
         assert(ce.get_sender() != nullptr);
@@ -48,14 +48,14 @@ int main(int argc, char** argv)
         std::erase(windows, ce.get_sender()->shared_from_this());
     };
 
-    exp_window->get_events()->leave += [](auto ee)
+    exp_window->get_events().leave += [](auto ee)
     {
         (void)ee;
         assert(ee.get_sender() != nullptr);
         log()->info("Cursor left the window");
     };
 
-    exp_window->get_events()->enter += [](auto ee)
+    exp_window->get_events().enter += [](auto ee)
     {
         assert(ee.get_sender() != nullptr);
         log()->info("Cursor entered the window at: {}x{}",
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
                     ee.get_local_position().y);
     };
 
-    exp_window->get_events()->move += [](auto me)
+    exp_window->get_events().move += [](auto me)
     {
         assert(me.get_sender() != nullptr);
         log()->info("Window moved from: {}x{} to: {}x{}",
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
                     me.get_new_position().y);
     };
 
-    exp_window->get_events()->resize += [](auto re)
+    exp_window->get_events().resize += [](auto re)
     {
         assert(re.get_sender() != nullptr);
         log()->info("Window resized from: {}x{} to: {}x{}",
@@ -83,7 +83,7 @@ int main(int argc, char** argv)
                     re.get_new_size().y);
     };
 
-    exp_window->get_events()->mouse_move += [](auto me)
+    exp_window->get_events().mouse_move += [](auto me)
     {
         assert(me.get_sender() != nullptr);
         log()->info("Mouse position: {}x{}",
@@ -91,55 +91,55 @@ int main(int argc, char** argv)
                     me.get_local_position().y);
     };
 
-    exp_window->get_events()->mouse_release += [](auto me)
+    exp_window->get_events().mouse_release += [](auto me)
     {
         assert(me.get_sender() != nullptr);
         log()->info("Mouse release: {}", me.get_button());
     };
 
-    exp_window->get_events()->mouse_press += [](auto me)
+    exp_window->get_events().mouse_press += [](auto me)
     {
         assert(me.get_sender() != nullptr);
         log()->info("Mouse press: {}", me.get_button());
     };
 
-    exp_window->get_events()->mouse_click += [](auto me)
+    exp_window->get_events().mouse_click += [](auto me)
     {
         assert(me.get_sender() != nullptr);
         log()->info("Mouse click: {}", me.get_button());
     };
 
-    exp_window->get_events()->mouse_double_click += [](auto me)
+    exp_window->get_events().mouse_double_click += [](auto me)
     {
         assert(me.get_sender() != nullptr);
         log()->info("Mouse double click: {}", me.get_button());
     };
 
-    exp_window->get_events()->mouse_triple_click += [](auto me)
+    exp_window->get_events().mouse_triple_click += [](auto me)
     {
         assert(me.get_sender() != nullptr);
         log()->info("Mouse triple click: {}", me.get_button());
     };
 
-    exp_window->get_events()->mouse_scroll += [](auto we)
+    exp_window->get_events().mouse_scroll += [](auto we)
     {
         assert(we.get_sender() != nullptr);
         log()->info("Mouse scroll: {}x{}", we.get_delta().x, we.get_delta().y);
     };
 
-    exp_window->get_events()->key_press += [](auto ke)
+    exp_window->get_events().key_press += [](auto ke)
     {
         assert(ke.get_sender() != nullptr);
         log()->info("Key pressed: {}", ke.get_scancode());
     };
 
-    exp_window->get_events()->key_repeat += [](auto ke)
+    exp_window->get_events().key_repeat += [](auto ke)
     {
         assert(ke.get_sender() != nullptr);
         log()->info("Key repeated: {}", ke.get_scancode());
     };
 
-    exp_window->get_events()->key_release += [](auto ke)
+    exp_window->get_events().key_release += [](auto ke)
     {
         assert(ke.get_sender() != nullptr);
         log()->info("Key released: {}", ke.get_scancode());

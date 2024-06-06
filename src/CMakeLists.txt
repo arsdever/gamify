@@ -62,6 +62,8 @@ add_library(
   viewport.cpp
   window.hpp
   window.cpp
+  experimental/editor_window.hpp
+  experimental/editor_window.cpp
   experimental/input_system.hpp
   experimental/input_system.cpp
   experimental/viewport.hpp

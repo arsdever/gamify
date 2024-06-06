@@ -8,6 +8,7 @@
 
 #include "experimental/window.hpp"
 
+#include "experimental/editor_window.hpp"
 #include "experimental/window_events.hpp"
 #include "input_system.hpp"
 #include "logging.hpp"
@@ -37,10 +38,9 @@ struct window::window_private_data
     GLFWwindow* _glfw_window_handle { nullptr };
     glm::uvec2 _size { 800, 600 };
     glm::uvec2 _position { 200, 200 };
-    std::shared_ptr<window_events> _events { nullptr };
+    window_events _events;
     std::vector<std::shared_ptr<viewport>> _viewports;
     std::string _title { "Window" };
-    bool _is_main_window { false };
     bool _can_grab { false };
     bool _has_grab { false };
     bool _is_input_source { false };
@@ -74,12 +74,6 @@ void window::init()
     }
 
     std::string title = _p->_title;
-    if (!_main_window)
-    {
-        _main_window = shared_from_this();
-        _p->_is_main_window = true;
-        _p->_is_input_source = true;
-    }
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
     glfwWindowHint(GLFW_SAMPLES, 8);
@@ -87,12 +81,12 @@ void window::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    _p->_glfw_window_handle = glfwCreateWindow(
-        static_cast<int>(get_width()),
-        static_cast<int>(get_height()),
-        title.c_str(),
-        nullptr,
-        _p->_is_main_window ? nullptr : _main_window->_p->_glfw_window_handle);
+    _p->_glfw_window_handle =
+        glfwCreateWindow(static_cast<int>(get_width()),
+                         static_cast<int>(get_height()),
+                         title.c_str(),
+                         nullptr,
+                         editor_window::get()->_p->_glfw_window_handle);
     if (_p->_glfw_window_handle == nullptr)
     {
         log()->error("Failed to create GLFW window");
@@ -109,7 +103,7 @@ void window::init()
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
         glm::uvec2 old_size = _this->_p->_size;
         _this->_p->_size = { w, h };
-        _this->get_events()->resize(
+        _this->get_events().resize(
             resize_event(old_size, _this->_p->_size, _this));
     });
 
@@ -119,7 +113,7 @@ void window::init()
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
         glm::uvec2 old_pos = _this->_p->_position;
         _this->_p->_position = { xpos, ypos };
-        _this->get_events()->move(
+        _this->get_events().move(
             move_event(old_pos, _this->_p->_position, _this));
     });
 
@@ -194,9 +188,9 @@ void window::update()
 
     if (glfwWindowShouldClose(_p->_glfw_window_handle))
     {
+        get_events().close(close_event(this));
         glfwDestroyWindow(_p->_glfw_window_handle);
         _p->_glfw_window_handle = nullptr;
-        get_events()->close(close_event(this));
         return;
     }
 
@@ -209,7 +203,7 @@ void window::update()
 
     activate();
 
-    get_events()->render(render_event(window_event::type::Render, this));
+    get_events().render(render_event(window_event::type::Render, this));
 
     glfwSwapBuffers(_p->_glfw_window_handle);
     glfwPollEvents();
@@ -255,12 +249,7 @@ std::vector<std::shared_ptr<viewport>> window::get_viewports()
     return _p->_viewports;
 }
 
-std::shared_ptr<window_events> window::get_events() const
-{
-    return _p->_events;
-}
-
-std::shared_ptr<window> window::get_main_window() { return _main_window; }
+window_events& window::get_events() const { return _p->_events; }
 
 void window::setup_mouse_callbacks()
 {
@@ -276,24 +265,25 @@ void window::setup_mouse_enter_callback()
                                [](GLFWwindow* wnd, int entered)
     {
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
-        std::shared_ptr<window_events> events = _this->get_events();
+        window_events& events = _this->get_events();
         if (entered == 0)
         {
-            events->leave(window_event(window_event::type::Leave, _this));
+            events.leave(window_event(window_event::type::Leave, _this));
             return;
         }
 
+        _this->set_as_input_source(true);
         glm::dvec2 pos;
         glfwGetCursorPos(wnd, &pos.x, &pos.y);
         _this->_p->_mouse_state._position = pos;
-        events->enter(enter_event(window_event::type::Enter,
-                                  _this->_p->_mouse_state._position,
-                                  _this->_p->_mouse_state._position,
-                                  _this->_p->_mouse_state._position,
-                                  0,
-                                  _this->_p->_mouse_state._buttons,
-                                  _this->_p->_mouse_state._mods,
-                                  _this));
+        events.enter(enter_event(window_event::type::Enter,
+                                 _this->_p->_mouse_state._position,
+                                 _this->_p->_mouse_state._position,
+                                 _this->_p->_mouse_state._position,
+                                 0,
+                                 _this->_p->_mouse_state._buttons,
+                                 _this->_p->_mouse_state._mods,
+                                 _this));
     });
 }
 
@@ -304,7 +294,7 @@ void window::setup_mouse_move_callback()
         [](GLFWwindow* wnd, double x_position, double y_position)
     {
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
-        std::shared_ptr<window_events> events = _this->get_events();
+        window_events& events = _this->get_events();
         _this->_p->_mouse_state._position = { x_position, y_position };
 
         if (_this->_p->_mouse_state._buttons)
@@ -312,14 +302,14 @@ void window::setup_mouse_move_callback()
             _this->check_for_drag();
         }
 
-        events->mouse_move(mouse_event(window_event::type::MouseMove,
-                                       _this->_p->_mouse_state._position,
-                                       _this->_p->_mouse_state._position,
-                                       _this->_p->_mouse_state._position,
-                                       0,
-                                       _this->_p->_mouse_state._buttons,
-                                       _this->_p->_mouse_state._mods,
-                                       _this));
+        events.mouse_move(mouse_event(window_event::type::MouseMove,
+                                      _this->_p->_mouse_state._position,
+                                      _this->_p->_mouse_state._position,
+                                      _this->_p->_mouse_state._position,
+                                      0,
+                                      _this->_p->_mouse_state._buttons,
+                                      _this->_p->_mouse_state._mods,
+                                      _this));
 
         if (_this->get_is_input_source())
         {
@@ -335,21 +325,20 @@ void window::setup_mouse_button_callback()
         [](GLFWwindow* wnd, int button, int action, int mods)
     {
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
-        std::shared_ptr<window_events> events = _this->get_events();
+        window_events& events = _this->get_events();
         if (action == GLFW_PRESS)
         {
             _this->_p->_mouse_state._press_started_position =
                 _this->_p->_mouse_state._position;
             _this->_p->_mouse_state._buttons |= (1 << button);
-            events->mouse_press(
-                mouse_event(window_event::type::MouseButtonPress,
-                            _this->_p->_mouse_state._position,
-                            _this->_p->_mouse_state._position,
-                            _this->_p->_mouse_state._position,
-                            button,
-                            _this->_p->_mouse_state._buttons,
-                            _this->_p->_mouse_state._mods,
-                            _this));
+            events.mouse_press(mouse_event(window_event::type::MouseButtonPress,
+                                           _this->_p->_mouse_state._position,
+                                           _this->_p->_mouse_state._position,
+                                           _this->_p->_mouse_state._position,
+                                           button,
+                                           _this->_p->_mouse_state._buttons,
+                                           _this->_p->_mouse_state._mods,
+                                           _this));
 
             if (_this->get_can_grab())
             {
@@ -360,7 +349,7 @@ void window::setup_mouse_button_callback()
         {
             _this->_p->_mouse_state._buttons ^= (1 << button);
 
-            events->mouse_release(
+            events.mouse_release(
                 mouse_event(window_event::type::MouseButtonRelease,
                             _this->_p->_mouse_state._position,
                             _this->_p->_mouse_state._position,
@@ -413,19 +402,19 @@ void window::setup_mouse_button_callback()
             case 1:
             {
                 event_type = window_event::type::MouseButtonClick;
-                f = &events->mouse_click;
+                f = &events.mouse_click;
                 break;
             }
             case 2:
             {
                 event_type = window_event::type::MouseButtonDoubleClick;
-                f = &events->mouse_double_click;
+                f = &events.mouse_double_click;
                 break;
             }
             case 3:
             {
                 event_type = window_event::type::MouseButtonTripleClick;
-                f = &events->mouse_triple_click;
+                f = &events.mouse_triple_click;
                 break;
             }
             default:
@@ -461,9 +450,9 @@ void window::setup_mouse_wheel_callback()
                           [](GLFWwindow* wnd, double x_offset, double y_offset)
     {
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
-        std::shared_ptr<window_events> events = _this->get_events();
+        window_events& events = _this->get_events();
 
-        events->mouse_scroll(wheel_event(
+        events.mouse_scroll(wheel_event(
             window_event::type::MouseWheel,
             _this->_p->_mouse_state._position,
             _this->_p->_mouse_state._position,
@@ -490,7 +479,6 @@ void window::check_for_drag()
 
 void window::configure_input_system()
 {
-    _p->_events = std::make_shared<window_events>();
     setup_mouse_callbacks();
 
     glfwSetKeyCallback(
@@ -500,7 +488,7 @@ void window::configure_input_system()
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
 
         window_event::type type = window_event::type::KeyRelease;
-        event<void(key_event)>* f = &_this->_p->_events->key_release;
+        event<void(key_event)>* f = &_this->_p->_events.key_release;
         bool is_repeat = false;
 
         _this->_p->_mouse_state._mods =
@@ -509,12 +497,12 @@ void window::configure_input_system()
         if (action == GLFW_PRESS)
         {
             type = window_event::type::KeyPress;
-            f = &_this->_p->_events->key_press;
+            f = &_this->_p->_events.key_press;
         }
         else if (action == GLFW_REPEAT)
         {
             type = window_event::type::KeyRepeat;
-            f = &_this->_p->_events->key_repeat;
+            f = &_this->_p->_events.key_repeat;
             is_repeat = true;
         }
         (*f)(key_event(
@@ -526,7 +514,5 @@ void window::configure_input_system()
         }
     });
 }
-
-std::shared_ptr<window> window::_main_window = nullptr;
 
 } // namespace experimental
