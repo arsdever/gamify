@@ -25,7 +25,8 @@
 					"value": "${env:PATH}:${command:cmake.getLaunchTargetDirectory}"
 				}
 			],
-			"externalConsole": false
+			"externalConsole": false,
+			"preLaunchTask": "CMake: build"
 		}
 	]
 }
