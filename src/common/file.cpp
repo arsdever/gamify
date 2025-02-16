@@ -111,5 +111,8 @@ bool file::exists() const { return impl::exists(_impl->path()); }
 
 bool file::exists(std::string_view path) { return impl::exists(path); }
 
-bool file::exists(const common::filesystem::path& path) { return impl::exists(path.full_path()); }
+bool file::exists(const common::filesystem::path& path)
+{
+    return impl::exists(path.full_path());
+}
 } // namespace common

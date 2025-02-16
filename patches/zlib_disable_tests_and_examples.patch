@@ -10,13 +10,13 @@ index 0fe939d..7ba7926 100644
 +if (0)
 +    enable_testing()
 +endif ()
- 
+
  check_include_file(sys/types.h HAVE_SYS_TYPES_H)
  check_include_file(stdint.h    HAVE_STDINT_H)
 @@ -230,6 +232,7 @@ endif()
  # Example binaries
  #============================================================================
- 
+
 +if (0)
  add_executable(example test/example.c)
  target_link_libraries(example zlib)

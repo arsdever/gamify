@@ -68,7 +68,8 @@ void renderer_2d::draw_rect(glm::vec2 top_left,
     glDisable(GL_DEPTH_TEST);
     vertex3d::activate_attributes();
 
-    auto shader_2d = assets::asset_manager::get<graphics::material>("standard.surface.mat");
+    auto shader_2d =
+        assets::asset_manager::get<graphics::material>("standard.surface.mat");
     shader_2d->set_property_value("u_vp_matrix", glm::identity<glm::mat4>());
     shader_2d->set_property_value("u_model_matrix", glm::identity<glm::mat4>());
 
@@ -113,11 +114,10 @@ void renderer_2d::draw_rect(glm::vec2 top_left,
 
     if (border_thickness > 0.0f)
     {
-        polygon_to_mesh(
-            points,
-            true,
-            border_thickness,
-            [ border_color, window_size, &vertices ](glm::vec2 v)
+        polygon_to_mesh(points,
+                        true,
+                        border_thickness,
+                        [ border_color, window_size, &vertices ](glm::vec2 v)
         {
             vertex3d vert;
             vert.position() =
@@ -125,7 +125,7 @@ void renderer_2d::draw_rect(glm::vec2 top_left,
             vert.uv() = map_from_window<float>(v, window_size);
             vertices.push_back(vert);
         },
-            [ index_offset, &indices ](unsigned i)
+                        [ index_offset, &indices ](unsigned i)
         { indices.push_back(i + index_offset); });
     }
 
@@ -153,7 +153,8 @@ void renderer_2d::draw_rect(glm::vec2 top_left,
 
     vertex3d::activate_attributes();
 
-    auto shader_2d = assets::asset_manager::get<graphics::material>("standard.surface.mat");
+    auto shader_2d =
+        assets::asset_manager::get<graphics::material>("standard.surface.mat");
     shader_2d->set_property_value("u_vp_matrix", glm::identity<glm::mat4>());
     shader_2d->set_property_value("u_model_matrix", glm::identity<glm::mat4>());
 
@@ -263,7 +264,8 @@ void renderer_2d::draw_text(glm::vec2 baseline,
     text_mesh.set_indices(std::move(indices));
     text_mesh.init();
 
-    auto white = assets::asset_manager::get<graphics::texture>("images.white.png");
+    auto white =
+        assets::asset_manager::get<graphics::texture>("images.white.png");
 
     auto text_material =
         assets::asset_manager::get<graphics::material>("standard.surface.mat");

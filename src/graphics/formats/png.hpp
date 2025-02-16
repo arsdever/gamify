@@ -33,10 +33,7 @@ public:
         if (!info)
             return { f, png, nullptr };
 
-        class png result
-        {
-            f, png, info
-        };
+        class png result { f, png, info };
         if (setjmp(png_jmpbuf(png)))
             return result;
 

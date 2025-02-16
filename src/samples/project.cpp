@@ -61,8 +61,7 @@ void load_scene()
 
     // parent_object->set_name("Parent");
     // object->set_name("Object in space");
-    sc->visit_root_objects(
-        [](const std::shared_ptr<game_object>& object)
+    sc->visit_root_objects([](const std::shared_ptr<game_object>& object)
     {
         glm::mat4 world =
             object->get_transform()

@@ -16,8 +16,7 @@ void timer::start(std::chrono::duration<double> delay)
 {
     _delay = delay;
     _cancelled.store(false);
-    _thread = std::thread(
-        [ this ]()
+    _thread = std::thread([ this ]()
     {
         _is_running.store(true);
         if (run_and_wait(_delay))

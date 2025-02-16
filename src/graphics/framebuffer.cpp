@@ -86,14 +86,12 @@ void framebuffer::set_samples(unsigned sample_count)
     _p->_depth_texture->set_samples(sample_count);
 }
 
-std::shared_ptr<const graphics::texture>
-framebuffer::color_texture() const
+std::shared_ptr<const graphics::texture> framebuffer::color_texture() const
 {
     return _p->_color_texture;
 }
 
-std::shared_ptr<const graphics::texture>
-framebuffer::depth_texture() const
+std::shared_ptr<const graphics::texture> framebuffer::depth_texture() const
 {
     return _p->_depth_texture;
 }

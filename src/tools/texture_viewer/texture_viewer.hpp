@@ -1,7 +1,8 @@
 #pragma once
 
-#include "core/window.hpp"
 #include "graphics/graphics_fwd.hpp"
+
+#include "core/window.hpp"
 
 class texture_viewer : public core::window
 {

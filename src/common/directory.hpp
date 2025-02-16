@@ -11,7 +11,7 @@ public:
     directory(std::string path);
     ~directory();
 
-	void visit_files(std::function<void(std::string, bool)> cb);
+    void visit_files(std::function<void(std::string, bool)> cb);
 
 private:
     struct impl;

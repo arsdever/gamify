@@ -1,6 +1,5 @@
 #include <string>
 
-
 #include "object.hpp"
 
 uid generate_unique_id()

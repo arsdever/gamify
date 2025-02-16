@@ -54,9 +54,8 @@ void input_system::set_input_source(std::shared_ptr<window> input_source)
     });
 
     glfwSetCursorPosCallback(handle,
-                             [](GLFWwindow* window, double x, double y) {
-        input_system::set_mouse_position({ x, y });
-    });
+                             [](GLFWwindow* window, double x, double y)
+    { input_system::set_mouse_position({ x, y }); });
 
     glfwSetMouseButtonCallback(
         handle,
@@ -81,8 +80,7 @@ void input_system::set_input_source(std::shared_ptr<window> input_source)
     //     input_system::set_mouse_delta({ xoffset, yoffset });
     // });
 
-    glfwSetJoystickCallback(
-        [](int jid, int event)
+    glfwSetJoystickCallback([](int jid, int event)
     {
         if (event == GLFW_CONNECTED)
             input_system::update_device_list();
@@ -178,8 +176,8 @@ std::shared_ptr<binding> input_system::bind_input(std::shared_ptr<binding> bond,
         std::string_view device_input = path.substr(pos + 1);
         if (device_input == "spacebar")
         {
-            bond->set_updater(
-                [] {
+            bond->set_updater([]
+            {
                 return 2 * static_cast<float>(is_key_down(GLFW_KEY_SPACE)) - 1;
             });
         }
@@ -189,8 +187,7 @@ std::shared_ptr<binding> input_system::bind_input(std::shared_ptr<binding> bond,
         std::string_view device_input = path.substr(pos + 1);
         if (device_input == "left_joystick")
         {
-            bond->set_updater(
-                []() -> glm::vec2
+            bond->set_updater([]() -> glm::vec2
             {
                 if (_gamepads.empty())
                     return {};
@@ -200,8 +197,7 @@ std::shared_ptr<binding> input_system::bind_input(std::shared_ptr<binding> bond,
         }
         else if (device_input == "right_joystick")
         {
-            bond->set_updater(
-                []() -> glm::vec2
+            bond->set_updater([]() -> glm::vec2
             {
                 if (_gamepads.empty())
                     return {};
@@ -211,8 +207,7 @@ std::shared_ptr<binding> input_system::bind_input(std::shared_ptr<binding> bond,
         }
         else if (device_input == "left_trigger")
         {
-            bond->set_updater(
-                []() -> float
+            bond->set_updater([]() -> float
             {
                 if (_gamepads.empty())
                     return {};
@@ -222,8 +217,7 @@ std::shared_ptr<binding> input_system::bind_input(std::shared_ptr<binding> bond,
         }
         else if (device_input == "right_trigger")
         {
-            bond->set_updater(
-                []() -> float
+            bond->set_updater([]() -> float
             {
                 if (_gamepads.empty())
                     return {};

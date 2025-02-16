@@ -3,24 +3,25 @@
 class graphics_buffer
 {
 public:
-enum class type
-{
-    vertex,
-    index,
-    shader_storage,
-};
+    enum class type
+    {
+        vertex,
+        index,
+        shader_storage,
+    };
 
-enum class usage_type {
-    stream_draw,
-    stream_read,
-    stream_copy,
-    static_draw,
-    static_read,
-    static_copy,
-    dynamic_draw,
-    dynamic_read,
-    dynamic_copy,
-};
+    enum class usage_type
+    {
+        stream_draw,
+        stream_read,
+        stream_copy,
+        static_draw,
+        static_read,
+        static_copy,
+        dynamic_draw,
+        dynamic_read,
+        dynamic_copy,
+    };
 
 public:
     graphics_buffer(type type);
@@ -46,9 +47,7 @@ public:
 
 private:
     type _type { type::vertex };
-    usage_type _usage_type {
-        usage_type::static_draw
-    };
+    usage_type _usage_type { usage_type::static_draw };
     unsigned _handle { 0 };
     int _element_count { 0 };
     int _element_stride { 0 };

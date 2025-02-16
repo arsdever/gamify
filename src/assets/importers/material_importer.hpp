@@ -13,4 +13,4 @@ public:
     void initialize_asset(asset& ast) override;
     void read_asset_data(std::string_view asset_path) override;
 };
-}
+} // namespace assets
