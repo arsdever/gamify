@@ -41,6 +41,16 @@ void material::set_shader_program(std::shared_ptr<graphics::shader> prog)
     _shader = prog;
 }
 
+std::optional<std::any>
+material::get_property_value(std::string_view name) const
+{
+    auto it = _property_map.find(std::string(name));
+    if (it == _property_map.end())
+        return std::nullopt;
+
+    return it->second;
+}
+
 void material::set_property_value(std::string_view name, std::any value)
 {
     _property_map[ std::string(name) ] = std::move(value);

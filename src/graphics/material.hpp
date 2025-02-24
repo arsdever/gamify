@@ -25,6 +25,18 @@ public:
 
     void set_property_value(std::string_view name, std::any value);
 
+    std::optional<std::any> get_property_value(std::string_view name) const;
+
+    template <typename T>
+    std::optional<T> get_property_value(std::string_view name)
+    {
+        auto value = get_property_value(name);
+        if (value.has_value() && value->type() == typeid(T))
+            return std::any_cast<T>(value.value());
+
+        return std::nullopt;
+    }
+
     template <typename... T>
     void set_property_value(std::string_view name, T... args)
     {
