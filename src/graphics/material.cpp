@@ -117,5 +117,15 @@ void material::set_fallback_shader(std::shared_ptr<graphics::shader> shader)
     _fallback_shader = std::move(shader);
 }
 
+void material::visit_properties(
+    std::function<void(std::string_view property_name,
+                       const std::any& property_value)> visitor)
+{
+    for (const auto& [ name, value ] : _property_map)
+    {
+        visitor(name, value);
+    }
+}
+
 std::shared_ptr<graphics::shader> material::_fallback_shader = {};
 } // namespace graphics

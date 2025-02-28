@@ -58,6 +58,10 @@ public:
     from_shader(std::shared_ptr<graphics::shader> shader);
     static void set_fallback_shader(std::shared_ptr<graphics::shader> shader);
 
+    void visit_properties(
+        std::function<void(std::string_view property_name,
+                           const std::any& property_value)> visitor);
+
 private:
     std::weak_ptr<graphics::shader> _shader;
     property_map_t _property_map;

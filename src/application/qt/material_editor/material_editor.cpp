@@ -1,15 +1,15 @@
 #include <QApplication>
 #include <QMainWindow>
-#include <QSlider>
-#include <QThread>
-#include <iostream>
+#include <future>
 
 #include <GLFW/glfw3.h>
 #include <assets/asset_manager.hpp>
 #include <common/main_thread_dispatcher.hpp>
 #include <graphics/graphics_fwd.hpp>
 #include <graphics/material.hpp>
+#include <qmainwindow.h>
 
+#include "application/qt/material_editor/material_property_ui_builder.hpp"
 #include "common/filesystem.hpp"
 #include "tools/material_viewer/material_viewer.hpp"
 
@@ -17,19 +17,14 @@ int main(int argc, char** argv)
 {
     int exit_code;
     QApplication* app = nullptr;
-    QSlider* spin_box = nullptr;
+    QMainWindow* wnd = nullptr;
 
     auto qtguijob =
-        std::packaged_task<void()>([ &argc, argv, &exit_code, &spin_box ]()
+        std::packaged_task<void()>([ &argc, argv, &wnd, &exit_code ]()
     {
         QApplication app(argc, argv);
-        QMainWindow wnd;
-        spin_box = new QSlider(Qt::Horizontal);
-        wnd.setCentralWidget(spin_box);
-        spin_box->setMinimum(0);
-        spin_box->setMaximum(100);
-        spin_box->setSingleStep(1);
-        wnd.show();
+        wnd = new QMainWindow;
+        wnd->show();
         exit_code = app.exec();
     });
 
@@ -43,7 +38,7 @@ int main(int argc, char** argv)
     std::shared_ptr<material_viewer> viewer =
         std::make_shared<material_viewer>();
     viewer->on_user_initialize +=
-        [ &app, &viewer, &spin_box ](std::shared_ptr<core::window> wnd)
+        [ &app, &viewer, &main_wnd = wnd ](std::shared_ptr<core::window> wnd)
     {
         assets::asset_manager::initialize(
             (common::filesystem::path::current_dir() / "resources")
@@ -60,15 +55,13 @@ int main(int argc, char** argv)
             "standard.standard.mat");
         viewer->set_material(mat);
 
-        if (spin_box)
+        QMetaObject::invokeMethod(qApp,
+                                  [ &main_wnd, mat ]
         {
-            spin_box->setValue(
-                mat->get_property_value<float>("u_roughness").value_or(0.0f));
-            spin_box->connect(spin_box,
-                              &QSlider::valueChanged,
-                              [ mat, &spin_box ](int value)
-            { mat->set_property_value("u_roughness", value / 100.0f); });
-        }
+            auto wdg = material_property_ui_builder::build(mat);
+            main_wnd->setCentralWidget(wdg);
+        },
+                                  Qt::QueuedConnection);
     };
     viewer->init();
 
