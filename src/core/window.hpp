@@ -58,6 +58,8 @@ public:
 
     static std::shared_ptr<window> get_main_window();
 
+    void* get_native_handle() const;
+
 private:
     void setup_mouse_callbacks();
 

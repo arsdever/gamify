@@ -1,5 +1,7 @@
 /* clang-format off */
 #include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 /* clang-format on */
 
 #include <glm/ext.hpp>
@@ -278,6 +280,11 @@ std::shared_ptr<window_events> window::get_events() const
 }
 
 std::shared_ptr<window> window::get_main_window() { return _main_window; }
+
+void* window::get_native_handle() const
+{
+    return glfwGetWin32Window(_p->_glfw_window_handle);
+}
 
 void window::setup_mouse_callbacks()
 {
