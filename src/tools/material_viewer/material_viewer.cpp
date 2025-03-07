@@ -4,13 +4,11 @@
 
 #include "tools/material_viewer/material_viewer.hpp"
 
-#include "assets/asset_manager.hpp"
 #include "core/window.hpp"
 #include "graphics/graphics.hpp"
 #include "graphics/graphics_buffer.hpp"
 #include "graphics/material.hpp"
 #include "graphics/renderer/renderer_3d.hpp"
-#include "project/game_object.hpp"
 
 material_viewer::material_viewer()
 {
