@@ -12,6 +12,150 @@ namespace
 static inline logger log() { return get_logger("shader"); }
 } // namespace
 
+inline shader_property_type get_type(unsigned gl_type)
+{
+    switch (gl_type)
+    {
+    case GL_FLOAT: return shader_property_type::spt_float;
+    case GL_FLOAT_VEC2: return shader_property_type::spt_vec2;
+    case GL_FLOAT_VEC3: return shader_property_type::spt_vec3;
+    case GL_FLOAT_VEC4: return shader_property_type::spt_vec4;
+    case GL_DOUBLE: return shader_property_type::spt_double;
+    case GL_DOUBLE_VEC2: return shader_property_type::spt_dvec2;
+    case GL_DOUBLE_VEC3: return shader_property_type::spt_dvec3;
+    case GL_DOUBLE_VEC4: return shader_property_type::spt_dvec4;
+    case GL_INT: return shader_property_type::spt_int;
+    case GL_INT_VEC2: return shader_property_type::spt_ivec2;
+    case GL_INT_VEC3: return shader_property_type::spt_ivec3;
+    case GL_INT_VEC4: return shader_property_type::spt_ivec4;
+    case GL_UNSIGNED_INT: return shader_property_type::spt_unsigned_int;
+    case GL_UNSIGNED_INT_VEC2: return shader_property_type::spt_uvec2;
+    case GL_UNSIGNED_INT_VEC3: return shader_property_type::spt_uvec3;
+    case GL_UNSIGNED_INT_VEC4: return shader_property_type::spt_uvec4;
+    case GL_BOOL: return shader_property_type::spt_bool;
+    case GL_BOOL_VEC2: return shader_property_type::spt_bvec2;
+    case GL_BOOL_VEC3: return shader_property_type::spt_bvec3;
+    case GL_BOOL_VEC4: return shader_property_type::spt_bvec4;
+    case GL_FLOAT_MAT2: return shader_property_type::spt_mat2;
+    case GL_FLOAT_MAT3: return shader_property_type::spt_mat3;
+    case GL_FLOAT_MAT4: return shader_property_type::spt_mat4;
+    case GL_FLOAT_MAT2x3: return shader_property_type::spt_mat2x3;
+    case GL_FLOAT_MAT2x4: return shader_property_type::spt_mat2x4;
+    case GL_FLOAT_MAT3x2: return shader_property_type::spt_mat3x2;
+    case GL_FLOAT_MAT3x4: return shader_property_type::spt_mat3x4;
+    case GL_FLOAT_MAT4x2: return shader_property_type::spt_mat4x2;
+    case GL_FLOAT_MAT4x3: return shader_property_type::spt_mat4x3;
+    case GL_DOUBLE_MAT2: return shader_property_type::spt_dmat2;
+    case GL_DOUBLE_MAT3: return shader_property_type::spt_dmat3;
+    case GL_DOUBLE_MAT4: return shader_property_type::spt_dmat4;
+    case GL_DOUBLE_MAT2x3: return shader_property_type::spt_dmat2x3;
+    case GL_DOUBLE_MAT2x4: return shader_property_type::spt_dmat2x4;
+    case GL_DOUBLE_MAT3x2: return shader_property_type::spt_dmat3x2;
+    case GL_DOUBLE_MAT3x4: return shader_property_type::spt_dmat3x4;
+    case GL_DOUBLE_MAT4x2: return shader_property_type::spt_dmat4x2;
+    case GL_DOUBLE_MAT4x3: return shader_property_type::spt_dmat4x3;
+    case GL_SAMPLER_1D: return shader_property_type::spt_sampler1D;
+    case GL_SAMPLER_2D: return shader_property_type::spt_sampler2D;
+    case GL_SAMPLER_3D: return shader_property_type::spt_sampler3D;
+    case GL_SAMPLER_CUBE: return shader_property_type::spt_samplerCube;
+    case GL_SAMPLER_1D_SHADOW: return shader_property_type::spt_sampler1DShadow;
+    case GL_SAMPLER_2D_SHADOW: return shader_property_type::spt_sampler2DShadow;
+    case GL_SAMPLER_1D_ARRAY: return shader_property_type::spt_sampler1DArray;
+    case GL_SAMPLER_2D_ARRAY: return shader_property_type::spt_sampler2DArray;
+    case GL_SAMPLER_1D_ARRAY_SHADOW:
+        return shader_property_type::spt_sampler1DArrayShadow;
+    case GL_SAMPLER_2D_ARRAY_SHADOW:
+        return shader_property_type::spt_sampler2DArrayShadow;
+    case GL_SAMPLER_2D_MULTISAMPLE:
+        return shader_property_type::spt_sampler2DMS;
+    case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        return shader_property_type::spt_sampler2DMSArray;
+    case GL_SAMPLER_CUBE_SHADOW:
+        return shader_property_type::spt_samplerCubeShadow;
+    case GL_SAMPLER_BUFFER: return shader_property_type::spt_samplerBuffer;
+    case GL_SAMPLER_2D_RECT: return shader_property_type::spt_sampler2DRect;
+    case GL_SAMPLER_2D_RECT_SHADOW:
+        return shader_property_type::spt_sampler2DRectShadow;
+    case GL_INT_SAMPLER_1D: return shader_property_type::spt_isampler1D;
+    case GL_INT_SAMPLER_2D: return shader_property_type::spt_isampler2D;
+    case GL_INT_SAMPLER_3D: return shader_property_type::spt_isampler3D;
+    case GL_INT_SAMPLER_CUBE: return shader_property_type::spt_isamplerCube;
+    case GL_INT_SAMPLER_1D_ARRAY:
+        return shader_property_type::spt_isampler1DArray;
+    case GL_INT_SAMPLER_2D_ARRAY:
+        return shader_property_type::spt_isampler2DArray;
+    case GL_INT_SAMPLER_2D_MULTISAMPLE:
+        return shader_property_type::spt_isampler2DMS;
+    case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        return shader_property_type::spt_isampler2DMSArray;
+    case GL_INT_SAMPLER_BUFFER: return shader_property_type::spt_isamplerBuffer;
+    case GL_INT_SAMPLER_2D_RECT:
+        return shader_property_type::spt_isampler2DRect;
+    case GL_UNSIGNED_INT_SAMPLER_1D:
+        return shader_property_type::spt_usampler1D;
+    case GL_UNSIGNED_INT_SAMPLER_2D:
+        return shader_property_type::spt_usampler2D;
+    case GL_UNSIGNED_INT_SAMPLER_3D:
+        return shader_property_type::spt_usampler3D;
+    case GL_UNSIGNED_INT_SAMPLER_CUBE:
+        return shader_property_type::spt_usamplerCube;
+    case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
+        return shader_property_type::spt_usampler1DArray;
+    case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+        return shader_property_type::spt_usampler2DArray;
+    case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE:
+        return shader_property_type::spt_usampler2DMS;
+    case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+        return shader_property_type::spt_usampler2DMSArray;
+    case GL_UNSIGNED_INT_SAMPLER_BUFFER:
+        return shader_property_type::spt_usamplerBuffer;
+    case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
+        return shader_property_type::spt_usampler2DRect;
+    case GL_IMAGE_1D: return shader_property_type::spt_image1D;
+    case GL_IMAGE_2D: return shader_property_type::spt_image2D;
+    case GL_IMAGE_3D: return shader_property_type::spt_image3D;
+    case GL_IMAGE_2D_RECT: return shader_property_type::spt_image2DRect;
+    case GL_IMAGE_CUBE: return shader_property_type::spt_imageCube;
+    case GL_IMAGE_BUFFER: return shader_property_type::spt_imageBuffer;
+    case GL_IMAGE_1D_ARRAY: return shader_property_type::spt_image1DArray;
+    case GL_IMAGE_2D_ARRAY: return shader_property_type::spt_image2DArray;
+    case GL_IMAGE_2D_MULTISAMPLE: return shader_property_type::spt_image2DMS;
+    case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+        return shader_property_type::spt_image2DMSArray;
+    case GL_INT_IMAGE_1D: return shader_property_type::spt_iimage1D;
+    case GL_INT_IMAGE_2D: return shader_property_type::spt_iimage2D;
+    case GL_INT_IMAGE_3D: return shader_property_type::spt_iimage3D;
+    case GL_INT_IMAGE_2D_RECT: return shader_property_type::spt_iimage2DRect;
+    case GL_INT_IMAGE_CUBE: return shader_property_type::spt_iimageCube;
+    case GL_INT_IMAGE_BUFFER: return shader_property_type::spt_iimageBuffer;
+    case GL_INT_IMAGE_1D_ARRAY: return shader_property_type::spt_iimage1DArray;
+    case GL_INT_IMAGE_2D_ARRAY: return shader_property_type::spt_iimage2DArray;
+    case GL_INT_IMAGE_2D_MULTISAMPLE:
+        return shader_property_type::spt_iimage2DMS;
+    case GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+        return shader_property_type::spt_iimage2DMSArray;
+    case GL_UNSIGNED_INT_IMAGE_1D: return shader_property_type::spt_uimage1D;
+    case GL_UNSIGNED_INT_IMAGE_2D: return shader_property_type::spt_uimage2D;
+    case GL_UNSIGNED_INT_IMAGE_3D: return shader_property_type::spt_uimage3D;
+    case GL_UNSIGNED_INT_IMAGE_2D_RECT:
+        return shader_property_type::spt_uimage2DRect;
+    case GL_UNSIGNED_INT_IMAGE_CUBE:
+        return shader_property_type::spt_uimageCube;
+    case GL_UNSIGNED_INT_IMAGE_BUFFER:
+        return shader_property_type::spt_uimageBuffer;
+    case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
+        return shader_property_type::spt_uimage1DArray;
+    case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+        return shader_property_type::spt_uimage2DArray;
+    case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE:
+        return shader_property_type::spt_uimage2DMS;
+    case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+        return shader_property_type::spt_uimage2DMSArray;
+    case GL_UNSIGNED_INT_ATOMIC_COUNTER:
+        return shader_property_type::spt_atomic_uint;
+    }
+}
+
 shader::shader() { _id = glCreateProgram(); }
 
 shader::shader(shader&& other)
@@ -133,6 +277,22 @@ void shader::visit_properties(
     }
 }
 
+bool shader::has_property(std::string_view name) const
+{
+    return _name_property_map.find(std::string(name)) !=
+           _name_property_map.end();
+}
+
+shader_property& shader::get_property(std::string_view name)
+{
+    return _name_property_map.at(std::string(name));
+}
+
+const shader_property& shader::get_property(std::string_view name) const
+{
+    return _name_property_map.at(std::string(name));
+}
+
 bool shader::is_valid() const { return _is_valid; }
 
 void shader::resolve_uniforms()
@@ -158,8 +318,16 @@ void shader::resolve_uniforms()
         glGetActiveUniform(id(), i, 512, &length, &size, &type, buffer.data());
         _properties[ i ].name = buffer;
         _properties[ i ].name.resize(length);
-        _properties[ i ].location_info = i;
+        _properties[ i ].location_info =
+            glGetUniformLocation(id(), _properties[ i ].name.c_str());
         _properties[ i ].size = size;
+        _properties[ i ].type = get_type(type);
+        if (_properties[ i ].type == shader_property_type::spt_sampler2D)
+        {
+            int v;
+            glGetUniformiv(id(), _properties[ i ].location_info, &v);
+            _properties[ i ].value = v;
+        }
         // TODO: verify emplace did add element
         _name_property_map.try_emplace(_properties[ i ].name, _properties[ i ]);
     }

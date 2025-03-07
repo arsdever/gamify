@@ -36,6 +36,11 @@ public:
     void
     visit_properties(std::function<void(const shader_property&)> visitor) const;
 
+    bool has_property(std::string_view name) const;
+
+    shader_property& get_property(std::string_view name);
+    const shader_property& get_property(std::string_view name) const;
+
     bool is_valid() const;
 
 private:

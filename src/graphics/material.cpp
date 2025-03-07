@@ -12,6 +12,45 @@ namespace
 static inline logger log() { return get_logger("material"); }
 } // namespace
 
+std::any default_property_value_for_type(graphics::shader_property_type type)
+{
+    switch (type)
+    {
+    case graphics::shader_property_type::spt_float: return 0.0f;
+    case graphics::shader_property_type::spt_vec2: return glm::vec2(0.0f);
+    case graphics::shader_property_type::spt_vec3: return glm::vec3(0.0f);
+    case graphics::shader_property_type::spt_vec4: return glm::vec4(0.0f);
+    case graphics::shader_property_type::spt_double: return 0.0;
+    case graphics::shader_property_type::spt_dvec2: return glm::dvec2(0.0);
+    case graphics::shader_property_type::spt_dvec3: return glm::dvec3(0.0);
+    case graphics::shader_property_type::spt_dvec4: return glm::dvec4(0.0);
+    case graphics::shader_property_type::spt_int: return 0;
+    case graphics::shader_property_type::spt_ivec2: return glm::ivec2(0);
+    case graphics::shader_property_type::spt_ivec3: return glm::ivec3(0);
+    case graphics::shader_property_type::spt_ivec4: return glm::ivec4(0);
+    case graphics::shader_property_type::spt_unsigned_int: return 0u;
+    case graphics::shader_property_type::spt_uvec2: return glm::uvec2(0u);
+    case graphics::shader_property_type::spt_uvec3: return glm::uvec3(0u);
+    case graphics::shader_property_type::spt_uvec4: return glm::uvec4(0u);
+    case graphics::shader_property_type::spt_bool: return false;
+    case graphics::shader_property_type::spt_bvec2: return glm::bvec2(false);
+    case graphics::shader_property_type::spt_bvec3: return glm::bvec3(false);
+    case graphics::shader_property_type::spt_bvec4: return glm::bvec4(false);
+    case graphics::shader_property_type::spt_mat2: return glm::mat2(1.0f);
+    case graphics::shader_property_type::spt_mat3: return glm::mat3(1.0f);
+    case graphics::shader_property_type::spt_mat4: return glm::mat4(1.0f);
+    case graphics::shader_property_type::spt_mat2x3: return glm::mat2x3(1.0f);
+    case graphics::shader_property_type::spt_mat2x4: return glm::mat2x4(1.0f);
+    case graphics::shader_property_type::spt_mat3x2: return glm::mat3x2(1.0f);
+    case graphics::shader_property_type::spt_mat3x4: return glm::mat3x4(1.0f);
+    case graphics::shader_property_type::spt_mat4x2: return glm::mat4x2(1.0f);
+    case graphics::shader_property_type::spt_mat4x3: return glm::mat4x3(1.0f);
+    case graphics::shader_property_type::spt_sampler2D:
+        return std::shared_ptr<texture>();
+    default: return {};
+    }
+}
+
 material::material() = default;
 
 material::material(material&& mat)
@@ -133,10 +172,19 @@ void material::visit_properties(
     std::function<void(std::string_view property_name,
                        const std::any& property_value)> visitor)
 {
-    for (const auto& [ name, value ] : _property_map)
+    program()->visit_properties(
+        [ visitor = std::move(visitor), this ](shader_property& p)
     {
-        visitor(name, value);
-    }
+        const auto& value = _property_map[ p.name ];
+        if (value.has_value())
+        {
+            visitor(p.name, value);
+            return;
+        }
+
+        auto type = p.type;
+        visitor(p.name, default_property_value_for_type(type));
+    });
 }
 
 std::shared_ptr<graphics::shader> material::_fallback_shader = {};

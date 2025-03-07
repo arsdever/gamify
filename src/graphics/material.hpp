@@ -30,7 +30,7 @@ public:
     template <typename T>
     std::optional<T> get_property_value(std::string_view name)
     {
-        auto value = get_property_value(name);
+        const auto& value = get_property_value(name);
         if (value.has_value() && value->type() == typeid(T))
             return std::any_cast<T>(value.value());
 
