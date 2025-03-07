@@ -33,6 +33,11 @@ void material_viewer::set_mesh_presets(
     _mesh_presets = std::move(m);
 }
 
+void material_viewer::set_background_color(glm::vec4 color)
+{
+    _background_color = color;
+}
+
 void material_viewer::initialize()
 {
     struct light_t
@@ -43,7 +48,10 @@ void material_viewer::initialize()
         float radius;
         glm::vec3 color;
         uint32_t type;
-    } l[ 2 ];
+    };
+
+    static constexpr auto lights_count = 2;
+    std::array<light_t, lights_count> l;
 
     l[ 0 ].position = glm::vec3(3, 3, 3);
     l[ 0 ].color = glm::vec3(1, 1, 1);
@@ -56,8 +64,9 @@ void material_viewer::initialize()
     _light_buffer = std::make_unique<graphics_buffer>(
         graphics_buffer::type::shader_storage);
     _light_buffer->set_element_stride(12 * sizeof(float));
-    _light_buffer->set_element_count(2);
+    _light_buffer->set_element_count(l.size());
     _light_buffer->set_data(&l);
+    _light_buffer->set_usage_type(graphics_buffer::usage_type::dynamic_draw);
 
     get_events()->render += [ this ](auto e) { render(); };
     get_events()->key_press += [ this ](auto e)
@@ -71,8 +80,11 @@ void material_viewer::initialize()
             _mesh = _mesh_presets[ mesh_index % _mesh_presets.size() ];
         }
     };
-    get_events()->mouse_press +=
-        [ this ](auto e) { _rotation_start_point = e.get_local_position(); };
+    get_events()->mouse_press += [ this ](auto e)
+    {
+        _rotation_start_point = e.get_local_position();
+        _camera_rotation_start_point = e.get_local_position();
+    };
     get_events()->mouse_move += [ this ](auto e)
     {
         if (e.get_buttons() & (1 << GLFW_MOUSE_BUTTON_1))
@@ -81,11 +93,35 @@ void material_viewer::initialize()
             _rotation.y -= e.get_local_position().x - _rotation_start_point.x;
             _rotation_start_point = e.get_local_position();
         }
+        if (e.get_buttons() & (1 << GLFW_MOUSE_BUTTON_2))
+        {
+            _camera_rotation.x -=
+                e.get_local_position().y - _camera_rotation_start_point.y;
+            _camera_rotation.y -=
+                e.get_local_position().x - _camera_rotation_start_point.x;
+            _camera_rotation_start_point = e.get_local_position();
+        }
     };
     get_events()->resize +=
         [ this ](auto e) { resize(e.get_new_size().x, e.get_new_size().y); };
     get_events()->mouse_scroll +=
         [ this ](auto e) { _zoom *= std::pow(2.0, e.get_delta().y / 10.0); };
+}
+
+glm::mat4 material_viewer::get_camera_matrix() const
+{
+    glm::mat4 camera_matrix = glm::identity<glm::mat4>();
+    camera_matrix = glm::rotate(
+        camera_matrix, _camera_rotation.y * 0.01f, glm::vec3(0, 1, 0));
+    camera_matrix = glm::rotate(
+        camera_matrix, _camera_rotation.x * 0.01f, glm::vec3(1, 0, 0));
+    camera_matrix = glm::translate(camera_matrix, glm::vec3(0, 0, _zoom * 4));
+    return camera_matrix;
+}
+
+glm::vec3 material_viewer::get_camera_position() const
+{
+    return get_camera_matrix() * glm::vec4(0, 0, 0, 1);
 }
 
 void material_viewer::render()
@@ -103,27 +139,26 @@ void material_viewer::render()
     if (_mesh == nullptr)
         return;
 
-    auto camera_position = glm::vec3(0, 0, _zoom * 4);
-
-    glm::mat4 camera_matrix =
-        glm::perspective(glm::radians(30.0f),
-                         static_cast<float>(get_width()) /
-                             static_cast<float>(get_height()),
-                         0.1f,
-                         100.0f) *
-        glm::lookAt(camera_position, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     glm::mat4 model = glm::identity<glm::mat4>();
     model = glm::rotate(model, _rotation.y * 0.01f, glm::vec3(0, 1, 0));
     model = glm::rotate(model, _rotation.x * 0.01f, glm::vec3(1, 0, 0));
-    camera_matrix = camera_matrix * glm::inverse(model);
+
+    auto camera_matrix = get_camera_matrix();
+    glm::vec3 camera_position = camera_matrix * glm::vec4(0, 0, 0, 1);
+    camera_matrix = glm::perspective(glm::radians(30.0f),
+                                     static_cast<float>(get_width()) /
+                                         static_cast<float>(get_height()),
+                                     0.1f,
+                                     100.0f) *
+                    glm::inverse(camera_matrix);
+    // glm::inverse(camera_matrix);
 
     _material->set_property_value("u_vp_matrix", camera_matrix);
-    _material->set_property_value("u_model_matrix", glm::identity<glm::mat4>());
+    _material->set_property_value("u_model_matrix", model);
     _material->set_property_value("u_camera_position", camera_position);
-    _material->set_property_value("u_model_matrix", glm::identity<glm::mat4>());
 
     graphics::set_viewport({ 0, 0 }, { get_size() });
-    graphics::clear({ 0.0f, 0.15f, 0.2f, 1.0f });
+    graphics::clear(_background_color);
 
     if (_material == nullptr)
         return;
