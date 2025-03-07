@@ -58,7 +58,7 @@
       "value": 0.5
     },
     {
-      "name": "u_ao",
+      "name": "u_ambient_occlusion",
       "type": "float",
       "value": 0.2
     },

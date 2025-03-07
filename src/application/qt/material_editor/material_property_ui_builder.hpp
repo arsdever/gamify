@@ -8,4 +8,8 @@ class material_property_ui_builder
 {
 public:
     static QWidget* build(std::shared_ptr<graphics::material> mat);
+
+private:
+    struct material_property_ui_builder_impl;
+    static std::unique_ptr<material_property_ui_builder_impl> _impl;
 };

@@ -6,18 +6,18 @@ in vec2 fragment_uv;
 in vec3 fragment_tangent;
 in vec3 fragment_bitangent;
 
-uniform sampler2D u_albedo_texture;
-uniform float u_albedo_texture_strength;
-uniform vec4 u_albedo_color;
-uniform sampler2D u_normal_texture;
-uniform float u_normal_texture_strength;
-uniform float u_metallic;
-uniform sampler2D u_metallic_texture;
-uniform float u_metallic_texture_strength;
-uniform sampler2D u_roughness_texture;
-uniform float u_roughness_texture_strength;
-uniform float u_roughness;
-uniform float u_ambient_occlusion;
+layout(location = 1, binding = 0) uniform sampler2D u_albedo_texture;
+layout(location = 2) uniform float u_albedo_texture_strength;
+layout(location = 3) uniform vec4 u_albedo_color;
+layout(location = 4, binding = 1) uniform sampler2D u_normal_texture;
+layout(location = 5) uniform float u_normal_texture_strength;
+layout(location = 6) uniform float u_metallic;
+layout(location = 7, binding = 2) uniform sampler2D u_metallic_texture;
+layout(location = 8) uniform float u_metallic_texture_strength;
+layout(location = 9, binding = 3) uniform sampler2D u_roughness_texture;
+layout(location = 10) uniform float u_roughness_texture_strength;
+layout(location = 11) uniform float u_roughness;
+layout(location = 12) uniform float u_ambient_occlusion;
 
 uniform vec3 u_camera_position;
 
@@ -169,10 +169,10 @@ void main()
     vec3 albedo = albedo_mixed_color(fragment_uv).xyz;
     float roughness = mix(u_roughness,
                           texture(u_roughness_texture, fragment_uv).r,
-                          u_albedo_texture_strength);
+                          u_roughness_texture_strength);
     float metallic = mix(u_metallic,
                          texture(u_metallic_texture, fragment_uv).r,
-                         u_albedo_texture_strength);
+                         u_metallic_texture_strength);
     direct_fresnel = mix(direct_fresnel, albedo.rgb, metallic);
 
     // reflectance equation

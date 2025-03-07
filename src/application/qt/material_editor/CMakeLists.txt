@@ -7,6 +7,7 @@ add_executable(
 	material_editor.cpp
 	material_property_ui_builder.cpp
 	material_property_ui_builder.hpp
+	resources.qrc
 )
 
 target_link_libraries(${PROJECT}_apps_material_editor PRIVATE
