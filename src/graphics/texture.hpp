@@ -51,6 +51,16 @@ public:
     size_t get_width() const;
     size_t get_height() const;
     size_t get_channel_count() const;
+    template <typename T>
+    const T* raw_data() const
+    {
+        return reinterpret_cast<const T*>(_data_buffer.data());
+    }
+    template <typename T>
+    T* raw_data()
+    {
+        return reinterpret_cast<T*>(_data_buffer.data());
+    }
     void get_data(char* data_ptr);
     void set_data(std::vector<char> data);
     void set_data(const char* data_ptr);
