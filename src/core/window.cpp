@@ -114,6 +114,11 @@ void window::init()
                               [](GLFWwindow* wnd, int w, int h)
     {
         auto _this = static_cast<window*>(glfwGetWindowUserPointer(wnd));
+        if (_this->_p->_size == glm::uvec2 { w, h })
+        {
+            return;
+        }
+
         glm::uvec2 old_size = _this->_p->_size;
         _this->_p->_size = { w, h };
         _this->get_events()->resize(
@@ -164,16 +169,19 @@ glm::uvec2 window::get_size() const { return _p->_size; }
 
 void window::resize(size_t width, size_t height)
 {
-    if (_p->_glfw_window_handle)
+    if (_p->_size == glm::uvec2 { width, height })
     {
-        glfwSetWindowSize(_p->_glfw_window_handle,
-                          static_cast<int>(width),
-                          static_cast<int>(height));
+        return;
     }
-    else
+
+    _p->_size = { width, height };
+    if (_p->_glfw_window_handle == nullptr)
     {
-        _p->_size = { width, height };
+        return;
     }
+    glfwSetWindowSize(_p->_glfw_window_handle,
+                      static_cast<int>(width),
+                      static_cast<int>(height));
 }
 
 void window::set_position(size_t x, size_t y) { move(x, y); }
