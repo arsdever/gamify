@@ -36,6 +36,8 @@ public:
     void
     visit_properties(std::function<void(const shader_property&)> visitor) const;
 
+    bool is_valid() const;
+
 private:
     void resolve_uniforms();
     void setup_property_values() const;
@@ -44,6 +46,7 @@ private:
     int _id { 0 };
     std::vector<std::shared_ptr<shader_script>> _shaders;
     std::string _name;
+    bool _is_valid { false };
 
     std::vector<shader_property> _properties;
     std::unordered_map<std::string,

@@ -54,15 +54,21 @@ void shader::compile()
         char msg[ 1024 ];
         glGetProgramInfoLog(_id, 1024, &log_length, msg);
         log()->error("Failed to compile shader {}({}): {}", _id, _name, msg);
+        _is_valid = false;
+
+        for (auto& ss : _shaders)
+        {
+            glDetachShader(_id, ss->id());
+        }
         return;
     }
 
     for (auto& ss : _shaders)
     {
-        ss->compile();
         glDetachShader(_id, ss->id());
     }
 
+    _is_valid = true;
     resolve_uniforms();
 }
 
@@ -126,6 +132,8 @@ void shader::visit_properties(
         visitor(prop);
     }
 }
+
+bool shader::is_valid() const { return _is_valid; }
 
 void shader::resolve_uniforms()
 {
