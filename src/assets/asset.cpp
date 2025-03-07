@@ -19,11 +19,19 @@ std::string asset::key() const
     return asset_manager::get_asset_key_by_path(file_path());
 }
 
+void asset::ensure_data()
+{
+    if (!is_loaded())
+    {
+        _loader(const_cast<asset&>(*this));
+    }
+}
+
 std::optional<std::any>& asset::get_raw_data() { return _data; }
 
-bool asset::is_of_type(size_t type_index) const
+bool asset::is_of_type(size_t type_index)
 {
-    return type_index == _data->type().hash_code();
+    return _data.has_value() && (type_index == _data->type().hash_code());
 }
 
 bool asset::is_loaded() const { return _data.has_value(); }

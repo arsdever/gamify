@@ -19,6 +19,8 @@ public:
     std::shared_ptr<asset> find(size_t i);
     std::shared_ptr<asset> find(std::string_view name);
 
+    void apply_assets(std::function<void(size_t, std::shared_ptr<asset>)> func);
+
 private:
     std::unordered_map<size_t, std::shared_ptr<asset>> _assets;
 };

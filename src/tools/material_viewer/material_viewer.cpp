@@ -27,11 +27,7 @@ void material_viewer::set_material(std::shared_ptr<graphics::material> m)
     _material = m;
 }
 
-void material_viewer::set_mesh_presets(
-    std::vector<std::shared_ptr<graphics::mesh>> m)
-{
-    _mesh_presets = std::move(m);
-}
+void material_viewer::set_mesh(std::shared_ptr<graphics::mesh> m) { _mesh = m; }
 
 void material_viewer::set_background_color(glm::vec4 color)
 {
@@ -73,12 +69,6 @@ void material_viewer::initialize()
     {
         if (e.get_key() == GLFW_KEY_W)
             _draw_wireframe = !_draw_wireframe;
-
-        if (e.get_key() >= '0' && e.get_key() <= '5')
-        {
-            auto mesh_index = e.get_key() - '0';
-            _mesh = _mesh_presets[ mesh_index % _mesh_presets.size() ];
-        }
     };
     get_events()->mouse_press += [ this ](auto e)
     {
@@ -124,16 +114,23 @@ glm::vec3 material_viewer::get_camera_position() const
     return get_camera_matrix() * glm::vec4(0, 0, 0, 1);
 }
 
+std::shared_ptr<graphics::material> material_viewer::get_material() const
+{
+    return _material;
+}
+
+std::shared_ptr<graphics::mesh> material_viewer::get_mesh() const
+{
+    return _mesh;
+}
+
 void material_viewer::render()
 {
     _light_buffer->bind(0);
 
     if (_mesh == nullptr)
     {
-        if (_mesh_presets.empty())
-            return;
-
-        _mesh = _mesh_presets[ 0 ];
+        return;
     }
 
     if (_mesh == nullptr)

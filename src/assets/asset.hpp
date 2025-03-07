@@ -19,20 +19,22 @@ public:
 
     std::optional<std::any>& get_raw_data();
 
+    void ensure_data();
+
     template <typename T>
     std::shared_ptr<T> get_raw_data() const;
 
-    bool is_of_type(size_t type_index) const;
+    bool is_of_type(size_t type_index);
 
     bool is_loaded() const;
 
     event<void()> _on_modified;
 
     template <typename T>
-    std::shared_ptr<T> as() const;
+    std::shared_ptr<T> as();
 
     template <typename T>
-    bool is_of_type() const;
+    bool is_of_type();
 
 private:
     /**
@@ -67,12 +69,9 @@ std::shared_ptr<T> asset::get_raw_data() const
 }
 
 template <typename T>
-std::shared_ptr<T> asset::as() const
+std::shared_ptr<T> asset::as()
 {
-    if (!is_loaded())
-    {
-        _loader(const_cast<asset&>(*this));
-    }
+    ensure_data();
 
     if (is_of_type<std::shared_ptr<T>>())
         return get_raw_data<T>();
@@ -81,8 +80,9 @@ std::shared_ptr<T> asset::as() const
 }
 
 template <typename T>
-bool asset::is_of_type() const
+bool asset::is_of_type()
 {
-    return is_loaded() && is_of_type(typeid(T).hash_code());
+    ensure_data();
+    return is_of_type(typeid(T).hash_code());
 }
 } // namespace assets

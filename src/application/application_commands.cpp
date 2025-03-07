@@ -49,12 +49,8 @@ void cmd_show_material::execute()
     mv->init();
     log()->debug("Showing material '{}'", get<0>());
     mv->set_material(material_asset->as<graphics::material>());
-    std::vector<std::shared_ptr<graphics::mesh>> mesh_presets {
-        assets::asset_manager::try_get<graphics::mesh>("meshes.cube.fbx"),
-        assets::asset_manager::try_get<graphics::mesh>("meshes.sphere.fbx"),
-        assets::asset_manager::try_get<graphics::mesh>("meshes.shader.fbx"),
-    };
-    mv->set_mesh_presets(std::move(mesh_presets));
+    mv->set_mesh(
+        assets::asset_manager::try_get<graphics::mesh>("meshes.sphere.fbx"));
     open_window_requested(mv);
 }
 

@@ -1,4 +1,5 @@
 #include <QColorDialog>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -15,6 +16,7 @@
 
 #include "assets/asset.hpp"
 #include "common/main_thread_dispatcher.hpp"
+#include "tools/material_viewer/material_viewer.hpp"
 
 struct material_property_ui_builder::material_property_ui_builder_impl
 {
@@ -120,9 +122,11 @@ struct material_property_ui_builder::material_property_ui_builder_impl
 };
 
 QWidget*
-material_property_ui_builder::build(std::shared_ptr<graphics::material> mat)
+material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
 {
+    auto mat = viewer->get_material();
     auto wmat = std::weak_ptr<graphics::material>(mat);
+    auto wviewer = std::weak_ptr<material_viewer>(viewer);
 
     QWidget* main_widget = new QWidget();
     QGridLayout* layout = new QGridLayout(main_widget);
@@ -130,15 +134,16 @@ material_property_ui_builder::build(std::shared_ptr<graphics::material> mat)
 
     int row = 0;
 
-    mat->visit_properties([ &row, layout, wmat ](std::string_view property_name,
-                                                 const std::any& property_value)
+    mat->visit_properties(
+        [ &row, layout, wmat, wviewer ](std::string_view property_name,
+                                        const std::any& property_value)
     {
         material_property_ui_builder_impl::create_control(
             layout,
             row,
             property_name,
             property_value,
-            [ wmat, property_name ](std::any value)
+            [ wmat, wviewer, property_name ](std::any value)
         {
             auto action = [ wmat, &property_name, value = std::move(value) ]
             {
@@ -165,6 +170,28 @@ material_property_ui_builder::build(std::shared_ptr<graphics::material> mat)
         // });
         ++row;
     });
+
+    QComboBox* mesh_selector = new QComboBox;
+    assets::asset_manager::apply<graphics::mesh>(
+        [ mesh_selector ](std::string_view name,
+                          std::shared_ptr<assets::asset> ast)
+    { mesh_selector->addItem(QString::fromLatin1(name)); });
+    mesh_selector->connect(mesh_selector,
+                           QOverload<int>::of(&QComboBox::currentIndexChanged),
+                           [ mesh_selector, wviewer ](int index)
+    {
+        if (auto viewer = wviewer.lock())
+        {
+            auto key = assets::asset_manager::get_asset_key_by_path(
+                mesh_selector->itemText(index).toStdString());
+            auto msh = assets::asset_manager::get<graphics::mesh>(key);
+            viewer->set_mesh(msh);
+        }
+    });
+    QLabel* mesh_selector_label = new QLabel("Mesh");
+    mesh_selector_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    layout->addWidget(mesh_selector_label, row, 0);
+    layout->addWidget(mesh_selector, row++, 1);
     layout->addItem(
         new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding),
         row,

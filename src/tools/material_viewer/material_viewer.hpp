@@ -10,12 +10,15 @@ public:
     material_viewer();
     ~material_viewer();
 
-    void set_mesh_presets(std::vector<std::shared_ptr<graphics::mesh>> m);
     void set_material(std::shared_ptr<graphics::material> m);
+    void set_mesh(std::shared_ptr<graphics::mesh> m);
     void set_background_color(glm::vec4 color);
 
     glm::mat4 get_camera_matrix() const;
     glm::vec3 get_camera_position() const;
+
+    std::shared_ptr<graphics::material> get_material() const;
+    std::shared_ptr<graphics::mesh> get_mesh() const;
 
 private:
     void initialize();
@@ -23,7 +26,6 @@ private:
 
 private:
     std::shared_ptr<graphics::material> _material { nullptr };
-    std::vector<std::shared_ptr<graphics::mesh>> _mesh_presets;
     std::shared_ptr<graphics::mesh> _mesh;
     std::unique_ptr<graphics_buffer> _light_buffer { nullptr };
     glm::vec2 _rotation { 0.0 };

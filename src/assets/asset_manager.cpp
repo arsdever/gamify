@@ -228,6 +228,16 @@ struct asset_manager::impl
         ast._on_modified();
     }
 
+    void apply_assets(
+        std::function<void(std::string_view, std::shared_ptr<asset>)> func)
+    {
+        _cache.apply_assets([ func ](size_t id, std::shared_ptr<asset> ast)
+        {
+            std::string key = get_asset_key_by_id(id);
+            func(key, ast);
+        });
+    }
+
     void perform_asset_load(asset& ast) { }
 
     void perform_asset_update(asset& ast) { }
@@ -282,6 +292,12 @@ asset& asset_manager::get(std::string_view name) { return *try_get(name); }
 std::shared_ptr<asset> asset_manager::try_get_internal(std::string_view name)
 {
     return _impl->try_get_internal(name);
+}
+
+void asset_manager::apply_assets(
+    std::function<void(std::string_view, std::shared_ptr<asset>)> func)
+{
+    _impl->apply_assets(func);
 }
 
 void asset_manager::register_importer(

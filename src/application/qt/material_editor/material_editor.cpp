@@ -6,9 +6,11 @@
 
 #include <GLFW/glfw3.h>
 #include <assets/asset_manager.hpp>
+#include <common/logging.hpp>
 #include <common/main_thread_dispatcher.hpp>
 #include <graphics/graphics_fwd.hpp>
 #include <graphics/material.hpp>
+#include <graphics/mesh.hpp>
 #include <graphics/texture.hpp>
 #include <qmainwindow.h>
 
@@ -41,11 +43,8 @@ int main(int argc, char** argv)
         assets::asset_manager::scan_project_directory();
         assets::asset_manager::setup_project_directory_watch();
         viewer->get_events()->close += [ &app ](auto ce) { app.quit(); };
-        viewer->set_mesh_presets({
-            assets::asset_manager::try_get<graphics::mesh>("meshes.cube.fbx"),
-            assets::asset_manager::try_get<graphics::mesh>("meshes.sphere.fbx"),
-            assets::asset_manager::try_get<graphics::mesh>("meshes.shader.fbx"),
-        });
+        viewer->set_mesh(
+            assets::asset_manager::try_get<graphics::mesh>("meshes.cube.fbx"));
 
         auto empty_texture =
             assets::asset_manager::get<graphics::texture>("images.empty.png");
@@ -57,7 +56,7 @@ int main(int argc, char** argv)
         graphics::material::set_fallback_shader(fb_shader);
         viewer->set_material(mat);
 
-        auto wdg = material_property_ui_builder::build(mat);
+        auto wdg = material_property_ui_builder::build(viewer);
         QDockWidget* dock = new QDockWidget("Properties", main_wnd);
         main_wnd->addDockWidget(Qt::RightDockWidgetArea, dock);
         dock->setWidget(wdg);

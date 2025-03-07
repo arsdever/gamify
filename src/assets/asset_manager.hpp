@@ -47,6 +47,27 @@ public:
         return ast->template as<T>();
     }
 
+    template <typename T>
+    static void apply(std::function<void(std::string_view, const T&)> func)
+    {
+        apply_asset([ func ](std::string_view name, std::shared_ptr<asset> ast)
+        { func(name, ast->template as<T>()); });
+    }
+
+    template <typename T>
+    static void
+    apply(std::function<void(std::string_view, std::shared_ptr<asset>)> func)
+    {
+        apply_assets([ func ](std::string_view name, std::shared_ptr<asset> ast)
+        {
+            if (ast->is_of_type<std::shared_ptr<T>>())
+                func(name, ast);
+        });
+    }
+
+    static void apply_assets(
+        std::function<void(std::string_view, std::shared_ptr<asset>)> func);
+
     static void register_importer(std::string_view key,
                                   std::shared_ptr<type_importer_base> importer);
 

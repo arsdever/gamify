@@ -35,4 +35,13 @@ std::shared_ptr<asset> asset_cache::find(std::string_view name)
 {
     return find(asset_manager::get_asset_id_by_key(name));
 }
+
+void asset_cache::apply_assets(
+    std::function<void(size_t, std::shared_ptr<asset>)> func)
+{
+    for (auto& ast : _assets)
+    {
+        func(ast.first, ast.second);
+    }
+}
 } // namespace assets
