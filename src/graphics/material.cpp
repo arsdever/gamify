@@ -33,7 +33,19 @@ material::~material() = default;
 
 std::shared_ptr<graphics::shader> material::program() const
 {
-    return _shader.lock();
+    if (auto prog = _shader.lock())
+    {
+        if (prog->is_valid())
+            return prog;
+    }
+
+    if (_fallback_shader == nullptr)
+    {
+        _fallback_shader =
+            assets::asset_manager::get<shader>("standard.fallback.shader");
+    }
+
+    return _fallback_shader;
 }
 
 void material::set_shader_program(std::shared_ptr<graphics::shader> prog)
