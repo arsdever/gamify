@@ -27,12 +27,17 @@ struct material_property_ui_builder::material_property_ui_builder_impl
         {
             auto slider = new QSlider(Qt::Horizontal);
             slider->setMinimum(0);
-            slider->setMaximum(100);
+            slider->setMaximum(10000);
+            slider->setSingleStep(1);
+            slider->setPageStep(10);
             slider->setMinimumWidth(200);
             slider->connect(slider,
                             &QSlider::valueChanged,
                             [ value_setter ](int value)
-            { value_setter(value / 100.0f); });
+            { value_setter(value / 10000.0f); });
+            slider->setValue(
+                std::get<0>(std::any_cast<std::tuple<float>>(property_value)) *
+                10000.0f);
             return slider;
         }
         else if (property_value.type() ==
@@ -66,7 +71,7 @@ struct material_property_ui_builder::material_property_ui_builder_impl
                                     .toStdString();
 
                 common::main_thread_dispatcher::dispatch(
-                    [ value_setter, img_path ]
+                    [ value_setter, img_path, wdg ]
                 {
                     std::any value;
                     auto txt = assets::asset_manager::get<graphics::texture>(
@@ -78,6 +83,27 @@ struct material_property_ui_builder::material_property_ui_builder_impl
                     }
 
                     value_setter(value);
+                    if (!txt)
+                    {
+                        return;
+                    }
+
+                    QPushButton* wdg = new QPushButton();
+                    auto format = QImage::Format_RGBA8888;
+                    switch (txt->get_channel_count())
+                    {
+                    case 1: format = QImage::Format_Grayscale8; break;
+                    case 3: format = QImage::Format_RGB888; break;
+                    case 4: format = QImage::Format_RGBA8888; break;
+                    default:
+                    }
+                    QPixmap icon =
+                        QPixmap::fromImage(QImage(txt->raw_data<uchar>(),
+                                                  txt->get_width(),
+                                                  txt->get_height(),
+                                                  format))
+                            .scaled(32, 32, Qt::KeepAspectRatio);
+                    wdg->setIcon(icon);
                 });
             });
             return wdg;
@@ -85,15 +111,29 @@ struct material_property_ui_builder::material_property_ui_builder_impl
         else if (property_value.type() ==
                  typeid(std::tuple<float, float, float, float>))
         {
-            QLabel* label = new QLabel();
+            QPushButton* label = new QPushButton();
             QPixmap pixmap(32, 32);
             auto [ r, g, b, a ] =
                 std::any_cast<std::tuple<float, float, float, float>>(
                     property_value);
             QColor c(r * 255, g * 255, b * 255, a * 255);
             pixmap.fill(c);
-            label->setPixmap(pixmap);
-            label->setStyleSheet("border: 1px solid black;");
+            label->setIcon(pixmap);
+            label->connect(label,
+                           &QPushButton::clicked,
+                           [ value_setter, c, label ]()
+            {
+                auto color = QColorDialog::getColor(c, nullptr, "Select color");
+                value_setter(std::tuple<float, float, float, float> {
+                    color.redF(),
+                    color.greenF(),
+                    color.blueF(),
+                    color.alphaF(),
+                });
+                QPixmap pixmap(32, 32);
+                pixmap.fill(color);
+                label->setIcon(pixmap);
+            });
             return label;
         }
         return nullptr;
@@ -131,6 +171,7 @@ material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
     QWidget* main_widget = new QWidget();
     QGridLayout* layout = new QGridLayout(main_widget);
     main_widget->setLayout(layout);
+    std::shared_ptr<graphics::material> active_material;
 
     int row = 0;
 
@@ -161,13 +202,6 @@ material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
                 { action(); });
             }
         });
-        // slider->connect(slider,
-        //                 &QSlider::valueChanged,
-        //                 [ wmat, property_name ](int value)
-        // {
-        //     if (auto mat = wmat.lock())
-        //         mat->set_property_value(property_name, value / 100.0f);
-        // });
         ++row;
     });
 
@@ -190,8 +224,40 @@ material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
     });
     QLabel* mesh_selector_label = new QLabel("Mesh");
     mesh_selector_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    QComboBox* material_selector = new QComboBox;
+    assets::asset_manager::apply<graphics::material>(
+        [ material_selector ](std::string_view name,
+                              std::shared_ptr<assets::asset> ast)
+    { material_selector->addItem(QString::fromLatin1(name)); });
+    material_selector->connect(
+        material_selector,
+        QOverload<int>::of(&QComboBox::currentIndexChanged),
+        [ material_selector, wviewer, &active_material ](int index)
+    {
+        auto key = assets::asset_manager::get_asset_key_by_path(
+            material_selector->itemText(index).toStdString());
+        auto mat = assets::asset_manager::get<graphics::material>(key);
+
+        if (auto viewer = wviewer.lock())
+        {
+            viewer->set_material(mat);
+        }
+
+        active_material = mat;
+    });
+    QLabel* material_selector_label = new QLabel("Material");
+    material_selector_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
     layout->addWidget(mesh_selector_label, row, 0);
     layout->addWidget(mesh_selector, row++, 1);
+    layout->addWidget(material_selector_label, row, 0);
+    layout->addWidget(material_selector, row++, 1);
+
+    QPushButton* save_button = new QPushButton("Save");
+    // TODO: Implement the save action
+    layout->addWidget(save_button, row++, 0, 1, -1);
+
     layout->addItem(
         new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding),
         row,
