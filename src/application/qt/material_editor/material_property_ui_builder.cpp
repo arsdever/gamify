@@ -1,5 +1,6 @@
 #include <QColorDialog>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
@@ -20,8 +21,11 @@
 
 struct material_property_ui_builder::material_property_ui_builder_impl
 {
-    static QWidget* get_control_for(std::function<void(std::any)> value_setter,
-                                    const std::any& property_value)
+    static void create_control(QGridLayout* layout,
+                               int& row,
+                               std::string_view property_name,
+                               const std::any& property_value,
+                               std::function<void(std::any)> property_setter)
     {
         if (property_value.type() == typeid(std::tuple<float>))
         {
@@ -31,14 +35,37 @@ struct material_property_ui_builder::material_property_ui_builder_impl
             slider->setSingleStep(1);
             slider->setPageStep(10);
             slider->setMinimumWidth(200);
+            slider->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                  QSizePolicy::Maximum);
             slider->connect(slider,
                             &QSlider::valueChanged,
-                            [ value_setter ](int value)
-            { value_setter(value / 10000.0f); });
+                            [ property_setter ](int value)
+            { property_setter(value / 10000.0f); });
+            QDoubleSpinBox* spinbox = new QDoubleSpinBox();
+            spinbox->setMinimum(0.0f);
+            spinbox->setMaximum(1.0f);
+            spinbox->setSingleStep(0.0001f);
+            spinbox->setMinimumWidth(100);
+            spinbox->setDecimals(4);
+            spinbox->connect(spinbox,
+                             &QDoubleSpinBox::valueChanged,
+                             [ property_setter, slider ](float value)
+            { slider->setValue(value * 10000.0f); });
+            spinbox->connect(slider,
+                             &QSlider::valueChanged,
+                             spinbox,
+                             [ spinbox ](int value)
+            {
+                auto bs = spinbox->blockSignals(true);
+                spinbox->setValue(value / 10000.0f);
+                spinbox->blockSignals(bs);
+            });
+            spinbox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
             slider->setValue(
                 std::get<0>(std::any_cast<std::tuple<float>>(property_value)) *
                 10000.0f);
-            return slider;
+            layout->addWidget(spinbox, row, 1, 1, 1);
+            layout->addWidget(slider, row, 2, 1, -1);
         }
         else if (property_value.type() ==
                  typeid(std::shared_ptr<graphics::texture>))
@@ -61,7 +88,7 @@ struct material_property_ui_builder::material_property_ui_builder_impl
             wdg->setIcon(icon);
             wdg->connect(wdg,
                          &QPushButton::clicked,
-                         [ wdg, value_setter, texture ]()
+                         [ wdg, property_setter, texture ]()
             {
                 auto img_path = QFileDialog::getOpenFileName(
                                     wdg,
@@ -71,7 +98,7 @@ struct material_property_ui_builder::material_property_ui_builder_impl
                                     .toStdString();
 
                 common::main_thread_dispatcher::dispatch(
-                    [ value_setter, img_path, wdg ]
+                    [ property_setter, img_path, wdg ]
                 {
                     std::any value;
                     auto txt = assets::asset_manager::get<graphics::texture>(
@@ -82,7 +109,8 @@ struct material_property_ui_builder::material_property_ui_builder_impl
                         value = txt;
                     }
 
-                    value_setter(value);
+                    property_setter(value);
+
                     if (!txt)
                     {
                         return;
@@ -106,7 +134,7 @@ struct material_property_ui_builder::material_property_ui_builder_impl
                     wdg->setIcon(icon);
                 });
             });
-            return wdg;
+            layout->addWidget(wdg, row, 1, 1, -1);
         }
         else if (property_value.type() ==
                  typeid(std::tuple<float, float, float, float>))
@@ -121,10 +149,10 @@ struct material_property_ui_builder::material_property_ui_builder_impl
             label->setIcon(pixmap);
             label->connect(label,
                            &QPushButton::clicked,
-                           [ value_setter, c, label ]()
+                           [ property_setter, c, label ]()
             {
                 auto color = QColorDialog::getColor(c, nullptr, "Select color");
-                value_setter(std::tuple<float, float, float, float> {
+                property_setter(std::tuple<float, float, float, float> {
                     color.redF(),
                     color.greenF(),
                     color.blueF(),
@@ -134,25 +162,8 @@ struct material_property_ui_builder::material_property_ui_builder_impl
                 pixmap.fill(color);
                 label->setIcon(pixmap);
             });
-            return label;
+            layout->addWidget(label, row, 1, 1, -1);
         }
-        return nullptr;
-    }
-
-    static void create_control(QGridLayout* layout,
-                               int row,
-                               std::string_view property_name,
-                               const std::any& property_value,
-                               std::function<void(std::any)> property_setter)
-    {
-        QWidget* control = get_control_for([ property_setter ](std::any value)
-        { property_setter(value); },
-                                           property_value);
-
-        if (!control)
-            return;
-
-        layout->addWidget(control, row, 1);
 
         auto label = new QLabel();
         label->setText(QString::fromLatin1(property_name));
@@ -249,10 +260,10 @@ material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
     QLabel* material_selector_label = new QLabel("Material");
     material_selector_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    layout->addWidget(mesh_selector_label, row, 0);
-    layout->addWidget(mesh_selector, row++, 1);
-    layout->addWidget(material_selector_label, row, 0);
-    layout->addWidget(material_selector, row++, 1);
+    layout->addWidget(mesh_selector_label, row, 0, 1, 1);
+    layout->addWidget(mesh_selector, row++, 1, 1, -1);
+    layout->addWidget(material_selector_label, row, 0, 1, 1);
+    layout->addWidget(material_selector, row++, 1, 1, -1);
 
     QPushButton* save_button = new QPushButton("Save");
     // TODO: Implement the save action
