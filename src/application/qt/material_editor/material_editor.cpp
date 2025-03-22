@@ -50,7 +50,7 @@ int main(int argc, char** argv)
             assets::asset_manager::get<graphics::texture>("images.empty.png");
         empty_texture->set_active_texture(0);
         auto mat = assets::asset_manager::try_get<graphics::material>(
-            "standard.standard.mat");
+            "standard.metal.mat");
         auto fb_shader = assets::asset_manager::get<graphics::shader>(
             "standard.fallback.shader");
         graphics::material::set_fallback_shader(fb_shader);
