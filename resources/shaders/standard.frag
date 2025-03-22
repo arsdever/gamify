@@ -5,6 +5,7 @@ in vec3 fragment_normal;
 in vec2 fragment_uv;
 in vec3 fragment_tangent;
 in vec3 fragment_bitangent;
+in mat3 tangent_bitangent_normal_matrix;
 
 layout(location = 1, binding = 0) uniform sampler2D u_albedo_texture;
 layout(location = 2) uniform float u_albedo_texture_strength;
@@ -58,7 +59,14 @@ vec4 albedo_mixed_color(vec2 uv_coord)
                u_albedo_texture_strength);
 }
 
-vec3 surface_normal(vec2 uv_coord) { return fragment_normal; }
+vec3 calculate_fragment_normal(vec2 uv_coord)
+{
+    vec3 normal = texture(u_normal_texture, uv_coord).rgb;
+    normal = normal * 2.0 - 1.0;
+    normal = normalize(tangent_bitangent_normal_matrix * normal);
+    normal = mix(fragment_normal, normal, u_normal_texture_strength);
+    return normal;
+}
 
 vec3 calculate_light_ambient(light_t light)
 {
@@ -162,7 +170,7 @@ vec3 direct_light_contribution(light_t light,
 
 void main()
 {
-    vec3 surface_normal = surface_normal(fragment_uv);
+    vec3 surface_normal = calculate_fragment_normal(fragment_uv);
     vec3 view_direction = normalize(u_camera_position - fragment_position);
 
     vec3 direct_fresnel = vec3(0.04);
