@@ -56,12 +56,12 @@ using reverse_order_tuple = reverse_order_tuple_helper<T...>::type;
 } // namespace
 
 using position_3d_attribute = vertex_attribute<float, 3, glm::vec3>;
-using position_2d_attribute = vertex_attribute<float, 2, glm::vec2>;
 using normal_3d_attribute = vertex_attribute<float, 3, glm::vec3>;
-using color_attribute = vertex_attribute<float, 4, glm::vec4>;
 using uv_attribute = vertex_attribute<float, 2, glm::vec2>;
+using color_attribute = vertex_attribute<float, 4, glm::vec4>;
 using tangent_attribute = vertex_attribute<float, 3, glm::vec3>;
 using bitangent_attribute = vertex_attribute<float, 3, glm::vec3>;
+using position_2d_attribute = vertex_attribute<float, 2, glm::vec2>;
 
 template <typename... ATTRIBUTES>
 struct vertex
