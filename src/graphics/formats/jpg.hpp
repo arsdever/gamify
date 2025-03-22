@@ -53,7 +53,7 @@ public:
         md._width = result._cinfo.output_width;
         md._height = result._cinfo.output_height;
         md._channel_count = result._cinfo.out_color_components;
-        md._bits_per_pixel = result._cinfo.jpeg_color_space == JCS_RGB ? 24 : 8;
+        md._bits_per_pixel = result._cinfo.out_color_space == JCS_RGB ? 24 : 8;
         md._bytes_per_row =
             result._cinfo.output_width * result._cinfo.output_components;
         switch (result._cinfo.out_color_space)
@@ -92,19 +92,21 @@ public:
     size_t read_pixels(unsigned char* data)
     {
         auto row_stride = _cinfo.output_width * _cinfo.output_components;
-        auto data_size = _cinfo.image_height * row_stride;
+        auto data_size = _cinfo.output_height * row_stride;
         if (data == nullptr)
             return data_size;
 
-        auto buffer = new unsigned char*[ _cinfo.output_height ];
+        std::vector<unsigned char*> buffer(_cinfo.output_height);
         for (int i = 0; i < _cinfo.output_height; ++i)
         {
             buffer[ i ] = data + i * row_stride;
         }
 
-        for (int i = 0; i < _cinfo.output_height; ++i)
+        size_t count = 0;
+        for (size_t i = 0; i < _cinfo.output_height; i += count)
         {
-            (void)jpeg_read_scanlines(&_cinfo, buffer++, _cinfo.output_height);
+            count = jpeg_read_scanlines(
+                &_cinfo, buffer.data() + i, _cinfo.output_height - i);
         }
 
         return data_size;
