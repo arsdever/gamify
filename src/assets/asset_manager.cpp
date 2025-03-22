@@ -88,7 +88,7 @@ struct asset_manager::impl
                         auto id = generate_random<size_t>();
                         _index[ "key_id" ][ asset_key ] = std::to_string(id);
                         _index[ "id_path" ][ std::to_string(id) ] =
-                            path.full_path();
+                            asset_path.full_path();
                     }
 
                     auto asset_load = [ &importer = _importer ](asset& ast)
