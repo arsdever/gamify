@@ -8,6 +8,7 @@
 #include "common/filesystem.hpp"
 #include "common/logging.hpp"
 #include "graphics/material.hpp"
+#include "graphics/texture.hpp"
 
 using json = nlohmann::json;
 namespace fs = common::filesystem;
@@ -85,7 +86,28 @@ void material_importer::read_asset_data(std::string_view asset_file)
     for (auto& prop : mat_struct[ "properties" ])
     {
         auto prop_name = prop[ "name" ].get<std::string>();
-        if (prop.contains("value"))
+        if (prop.contains("type") && prop[ "type" ] == "image")
+        {
+            if (!prop.contains("path"))
+            {
+                continue;
+            }
+            auto image_name = prop[ "path" ].get<std::string>();
+            auto txt = asset_manager::get<graphics::texture>(
+                asset_manager::get_asset_key_by_path(image_name));
+            if (!txt)
+            {
+                log()->error(
+                    "(Texture file '{}' required by material '{}' could not "
+                    "be found) ",
+                    image_name,
+                    asset_file);
+                return;
+            }
+
+            _data->set_property_value(prop_name, txt);
+        }
+        else if (prop.contains("value"))
         {
             // TODO: rework needed here as the type was erased from material
             // properties
