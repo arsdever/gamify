@@ -16,6 +16,7 @@ target_link_libraries(${PROJECT}_apps_material_editor PRIVATE
 	Qt::Widgets
 	Qt::Core
 	Qt::Gui
+	${PROJECT}::ui::widgets
 )
 find_program(Qt6 QUIET Qt::windeployqt)
 

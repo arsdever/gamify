@@ -15,6 +15,8 @@
 
 #include "material_property_ui_builder.hpp"
 
+#include "application/qt/widgets/color_widget.hpp"
+#include "application/qt/widgets/texture_widget.hpp"
 #include "assets/asset.hpp"
 #include "common/main_thread_dispatcher.hpp"
 #include "tools/material_viewer/material_viewer.hpp"
@@ -73,96 +75,43 @@ struct material_property_ui_builder::material_property_ui_builder_impl
             auto texture = std::any_cast<std::shared_ptr<graphics::texture>>(
                 property_value);
 
-            QImage img(":/transparent.png");
-
-            if (texture)
-            {
-                img = QImage(texture->raw_data<uchar>(),
-                             texture->get_width(),
-                             texture->get_height(),
-                             QImage::Format_RGBA8888);
-            }
-            QPushButton* wdg = new QPushButton();
-            QPixmap icon = QPixmap::fromImage(img);
-            icon = icon.scaled(32, 32, Qt::KeepAspectRatio);
-            wdg->setIcon(icon);
+            ui::texture_widget* wdg = new ui::texture_widget();
             wdg->connect(wdg,
-                         &QPushButton::clicked,
-                         [ wdg, property_setter, texture ]()
+                         &ui::texture_widget::image_changed,
+                         [ wdg, property_setter ](std::string_view path)
             {
-                auto img_path = QFileDialog::getOpenFileName(
-                                    wdg,
-                                    "Open image file",
-                                    "",
-                                    "Image files (*.png *.jpg *.jpeg)")
-                                    .toStdString();
+                auto txt = assets::asset_manager::get<graphics::texture>(
+                    assets::asset_manager::get_asset_key_by_path(path));
 
-                common::main_thread_dispatcher::dispatch(
-                    [ property_setter, img_path, wdg ]
+                property_setter(txt);
+
+                if (!txt)
                 {
-                    std::any value;
-                    auto txt = assets::asset_manager::get<graphics::texture>(
-                        assets::asset_manager::get_asset_key_by_path(img_path));
+                    return;
+                }
 
-                    if (txt)
-                    {
-                        value = txt;
-                    }
-
-                    property_setter(value);
-
-                    if (!txt)
-                    {
-                        return;
-                    }
-
-                    QPushButton* wdg = new QPushButton();
-                    auto format = QImage::Format_RGBA8888;
-                    switch (txt->get_channel_count())
-                    {
-                    case 1: format = QImage::Format_Grayscale8; break;
-                    case 3: format = QImage::Format_RGB888; break;
-                    case 4: format = QImage::Format_RGBA8888; break;
-                    default:
-                    }
-                    QPixmap icon =
-                        QPixmap::fromImage(QImage(txt->raw_data<uchar>(),
-                                                  txt->get_width(),
-                                                  txt->get_height(),
-                                                  format))
-                            .scaled(32, 32, Qt::KeepAspectRatio);
-                    wdg->setIcon(icon);
-                });
+                wdg->set_image(txt);
             });
+            wdg->set_image(texture);
             layout->addWidget(wdg, row, 1, 1, -1);
         }
         else if (property_value.type() ==
                  typeid(std::tuple<float, float, float, float>))
         {
-            QPushButton* label = new QPushButton();
-            QPixmap pixmap(32, 32);
+            ui::color_widget* wdg = new ui::color_widget();
             auto [ r, g, b, a ] =
                 std::any_cast<std::tuple<float, float, float, float>>(
                     property_value);
-            QColor c(r * 255, g * 255, b * 255, a * 255);
-            pixmap.fill(c);
-            label->setIcon(pixmap);
-            label->connect(label,
-                           &QPushButton::clicked,
-                           [ property_setter, c, label ]()
+            glm::vec4 color = { r, g, b, a };
+            wdg->set_color(color);
+            wdg->connect(wdg,
+                         &ui::color_widget::color_changed,
+                         [ property_setter ](glm::vec4 color)
             {
-                auto color = QColorDialog::getColor(c, nullptr, "Select color");
-                property_setter(std::tuple<float, float, float, float> {
-                    color.redF(),
-                    color.greenF(),
-                    color.blueF(),
-                    color.alphaF(),
-                });
-                QPixmap pixmap(32, 32);
-                pixmap.fill(color);
-                label->setIcon(pixmap);
+                property_setter(
+                    std::make_tuple(color.r, color.g, color.b, color.a));
             });
-            layout->addWidget(label, row, 1, 1, -1);
+            layout->addWidget(wdg, row, 1, 1, -1);
         }
 
         auto label = new QLabel();
