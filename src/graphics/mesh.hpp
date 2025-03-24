@@ -12,6 +12,7 @@ public:
     struct submesh_info
     {
         size_t vertex_index_offset;
+        size_t vertex_count;
         unsigned short material_index;
     };
 

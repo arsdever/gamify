@@ -70,6 +70,7 @@ void model_importer::read_asset_data(std::string_view asset_path)
                 for (auto ai_mesh : ai_submeshes)
                 {
                     graphics::mesh::submesh_info info;
+                    size_t prev_vertex_count = vertices.size();
                     info.material_index = ai_mesh->mMaterialIndex;
                     info.vertex_index_offset = indices.size();
 
@@ -114,16 +115,17 @@ void model_importer::read_asset_data(std::string_view asset_path)
                             ai_mesh->mFaces[ face_index ];
                         for (int j = 0; j < assimp_face.mNumIndices; ++j)
                             indices.push_back(assimp_face.mIndices[ j ] +
-                                              info.vertex_index_offset);
+                                              prev_vertex_count);
                     }
 
+                    info.vertex_count = vertices.size() - prev_vertex_count;
                     submeshes.push_back(std::move(info));
-
-                    _data->set_vertices(std::move(vertices));
-                    _data->set_indices(std::move(indices));
-                    _data->set_submeshes(std::move(submeshes));
-                    _data->init();
                 }
+
+                _data->set_vertices(std::move(vertices));
+                _data->set_indices(std::move(indices));
+                _data->set_submeshes(std::move(submeshes));
+                _data->init();
             }
         }
     }
