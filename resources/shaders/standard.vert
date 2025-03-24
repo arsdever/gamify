@@ -24,7 +24,7 @@ void main()
     fragment_position = vec3(u_model_matrix * vec4(i_vertex_position, 1.0));
     fragment_normal =
         mat3(transpose(inverse(u_model_matrix))) * i_vertex_normal;
-    fragment_uv = i_vertex_uv;
+    fragment_uv = vec2(i_vertex_uv.x, 1 - i_vertex_uv.y);
     fragment_tangent = i_vertex_tangent;
     fragment_bitangent = i_vertex_bitangent;
 
