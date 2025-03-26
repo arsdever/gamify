@@ -1,5 +1,5 @@
 {
-  "shader": "surface",
+  "shader": "standard.surface.shader",
   "properties": [
     {
       "name": "u_color",

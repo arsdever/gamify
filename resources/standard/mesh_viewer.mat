@@ -1,5 +1,5 @@
 {
-  "shader": "mesh_viewer",
+  "shader": "standard.mesh_viewer.shader",
   "properties": [
     {
       "name": "u_mode",

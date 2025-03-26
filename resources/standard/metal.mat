@@ -1,5 +1,5 @@
 {
-  "shader": "standard",
+  "shader": "standard.standard.shader",
   "properties": [
     {
       "name": "u_albedo_color",

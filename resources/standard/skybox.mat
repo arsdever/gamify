@@ -1,5 +1,5 @@
 {
-  "shader": "skybox",
+  "shader": "standard.skybox.shader",
   "properties": [
     {
       "name": "u_model_matrix",

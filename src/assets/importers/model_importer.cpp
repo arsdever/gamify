@@ -129,5 +129,14 @@ void model_importer::read_asset_data(std::string_view asset_path)
             }
         }
     }
+
+    for (int i = 0; i < ai_scene->mNumMaterials; ++i)
+    {
+        const aiMaterial* material = ai_scene->mMaterials[ i ];
+
+        aiString name;
+        material->Get(AI_MATKEY_NAME, name);
+        log()->debug("Material: {}", name.C_Str());
+    }
 }
 } // namespace assets

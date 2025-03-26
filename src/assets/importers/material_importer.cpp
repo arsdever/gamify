@@ -57,26 +57,14 @@ void material_importer::read_asset_data(std::string_view asset_file)
         return;
     }
 
-    std::string shader_exclusive_name =
-        mat_struct[ "shader" ].get<std::string>();
-    std::string shader_path(
-        (fs::path(fs::path(asset_file).full_path_without_filename()) /
-             shader_exclusive_name +
-         ".shader")
-            .full_path());
-    shader_exclusive_name =
-        assets::asset_manager::get_asset_key_by_path(shader_path);
+    std::string shader_key = mat_struct[ "shader" ].get<std::string>();
+    auto sh = assets::asset_manager::try_get<graphics::shader>(shader_key);
 
-    auto sh =
-        assets::asset_manager::try_get<graphics::shader>(shader_exclusive_name);
-
-    if (sh = assets::asset_manager::try_get<graphics::shader>(
-            shader_exclusive_name);
-        !sh)
+    if (!sh)
     {
         log()->error(
             "(Shader file '{}' required by material '{}' could not be found) ",
-            shader_path,
+            shader_key,
             asset_file);
         return;
     }
