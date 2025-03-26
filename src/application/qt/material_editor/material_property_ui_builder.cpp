@@ -131,7 +131,6 @@ material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
     QWidget* main_widget = new QWidget();
     QGridLayout* layout = new QGridLayout(main_widget);
     main_widget->setLayout(layout);
-    std::shared_ptr<graphics::material> active_material;
 
     int row = 0;
 
@@ -193,7 +192,7 @@ material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
     material_selector->connect(
         material_selector,
         QOverload<int>::of(&QComboBox::currentIndexChanged),
-        [ material_selector, wviewer, &active_material ](int index)
+        [ material_selector, wviewer ](int index)
     {
         auto key = assets::asset_manager::get_asset_key_by_path(
             material_selector->itemText(index).toStdString());
@@ -203,8 +202,6 @@ material_property_ui_builder::build(std::shared_ptr<material_viewer> viewer)
         {
             viewer->set_material(mat);
         }
-
-        active_material = mat;
     });
     QLabel* material_selector_label = new QLabel("Material");
     material_selector_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
