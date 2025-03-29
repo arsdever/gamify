@@ -120,25 +120,45 @@ void material::activate() const
     }
 
     int texture_binding_index = 0;
-    for (const auto& [ name, value ] : _property_map)
+
+    s->visit_properties(
+        [ &pm = _property_map, &texture_binding_index ](shader_property& p)
     {
-        if (value.type() == typeid(std::shared_ptr<graphics::texture>))
+        auto it = pm.find(p.name);
+        if (it == pm.end())
         {
-            auto t = std::any_cast<std::shared_ptr<graphics::texture>>(value);
-            t->set_active_texture(texture_binding_index);
-            s->set_property(name, texture_binding_index++);
-        }
-        else if (value.type() == typeid(texture*))
-        {
-            const auto* t = std::any_cast<texture*>(value);
-            t->set_active_texture(texture_binding_index);
-            s->set_property(name, texture_binding_index++);
+            if (p.type == graphics::shader_property_type::spt_sampler2D)
+            {
+                auto t = assets::asset_manager::get<graphics::texture>(
+                    "images.white.png");
+                t->set_active_texture(texture_binding_index);
+                p.value = texture_binding_index++;
+            }
+
+            p.value = {};
         }
         else
         {
-            s->set_property(name, value);
+            auto& value = it->second;
+            if (value.type() == typeid(std::shared_ptr<graphics::texture>))
+            {
+                auto t =
+                    std::any_cast<std::shared_ptr<graphics::texture>>(value);
+                t->set_active_texture(texture_binding_index);
+                p.value = texture_binding_index++;
+            }
+            else if (value.type() == typeid(texture*))
+            {
+                const auto* t = std::any_cast<texture*>(value);
+                t->set_active_texture(texture_binding_index);
+                p.value = texture_binding_index++;
+            }
+            else
+            {
+                p.value = value;
+            }
         }
-    }
+    });
 
     s->activate();
 }
