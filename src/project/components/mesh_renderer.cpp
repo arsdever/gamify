@@ -1,3 +1,4 @@
+#include <common/logging.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include "project/components/mesh_renderer.hpp"
@@ -8,6 +9,8 @@
 #include "project/serializer_json.hpp"
 
 using namespace serialization::utilities;
+
+inline logger log() { return get_logger("mesh_renderer"); }
 
 namespace components
 {
@@ -34,6 +37,15 @@ mesh_renderer::get_material(size_t index) const
     return _materials[ std::min(index, _materials.size() - 1) ];
 }
 
+void mesh_renderer::add_material(std::shared_ptr<graphics::material> m)
+{
+    if (m == nullptr)
+    {
+        log()->warn("{}: Adding null material to mesh renderer", get_name());
+    }
+    _materials.push_back(m);
+}
+
 void mesh_renderer::set_material(size_t index,
                                  std::shared_ptr<graphics::material> m)
 {
@@ -43,6 +55,13 @@ void mesh_renderer::set_material(size_t index,
     }
 
     _materials[ index ] = m;
+
+    if (m == nullptr)
+    {
+        log()->warn("{}: Setting a null material to mesh renderer at index {}",
+                    get_name(),
+                    index);
+    }
 }
 
 template <>

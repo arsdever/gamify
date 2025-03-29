@@ -22,6 +22,7 @@ public:
     void set_materials(std::vector<std::shared_ptr<graphics::material>> m);
 
     std::shared_ptr<graphics::material> get_material(size_t index) const;
+    void add_material(std::shared_ptr<graphics::material> m);
     void set_material(size_t index, std::shared_ptr<graphics::material> m);
 
     template <typename ST>
