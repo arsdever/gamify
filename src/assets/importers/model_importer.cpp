@@ -119,6 +119,8 @@ void model_importer::read_asset_data(std::string_view asset_path)
                     }
 
                     info.vertex_count = vertices.size() - prev_vertex_count;
+                    info.index_count =
+                        indices.size() - info.vertex_index_offset;
                     submeshes.push_back(std::move(info));
                 }
 
