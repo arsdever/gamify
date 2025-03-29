@@ -94,23 +94,51 @@ std::shared_ptr<scene> cmd_load_scene::default_scene()
 
     auto temple_object = game_object::create();
     temple_object->add<components::mesh_filter>().set_mesh(
-        assets::asset_manager::get<graphics::mesh>("meshes.steampunk.fbx"));
+        assets::asset_manager::get<graphics::mesh>(
+            "meshes.steampunk_tower.fbx"));
     auto& mr = temple_object->add<components::mesh_renderer>();
-    mr.set_material(0,
-                    assets::asset_manager::get<graphics::material>(
-                        "images.steampunk.wood_trims.mat"));
-    mr.set_material(1,
-                    assets::asset_manager::get<graphics::material>(
-                        "images.steampunk.stone_trims.mat"));
-    mr.set_material(2,
-                    assets::asset_manager::get<graphics::material>(
-                        "images.steampunk.wall_stone.mat"));
-    mr.set_material(3,
-                    assets::asset_manager::get<graphics::material>(
-                        "images.steampunk.beams_patterns.mat"));
-    mr.set_material(4,
-                    assets::asset_manager::get<graphics::material>(
-                        "images.steampunk.beams_dougong.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.wood_trims.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.wall_stone.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.roof_B.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.stone_trims.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.steam_control_system.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.house_G.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.house_B.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.beams_patterns.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.house_C.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.house_F.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.walls.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.props_B.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.metal_fittings.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.props_A.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.stonework.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.pipes.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.trims_metal.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.roof_A.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.beams_dougong.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.plaster.mat"));
+    mr.add_material(assets::asset_manager::get<graphics::material>(
+        "images.steampunk.wood_planks.mat"));
     temple_object->set_name("temple");
     temple_object->get_transform().set_position({ 3, 0, 3 });
     go->add_child(temple_object);
@@ -131,7 +159,7 @@ std::shared_ptr<scene> cmd_load_scene::default_scene()
 
     go = game_object::create();
     auto& camera = go->add<components::camera>();
-    go->get_transform().set_position({ 10, 4, 8 });
+    go->get_transform().set_position({ 5, 4, 8 });
     go->get_transform().set_rotation(
         glm::quatLookAt(glm::normalize(-go->get_transform().get_position()),
                         glm::dvec3 {
