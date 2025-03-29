@@ -1,0 +1,35 @@
+{
+  "shader": "standard.standard.shader",
+  "properties": [
+    {
+      "name": "u_albedo_texture_strength",
+      "type": "float",
+      "value": 1
+    },
+    {
+      "name": "u_albedo_texture",
+      "type": "image",
+      "path": "images.steampunk.trims_metal_BC.jpg"
+    },
+    {
+      "name": "u_normal_texture_strength",
+      "type": "float",
+      "value": 1
+    },
+    {
+      "name": "u_normal_texture",
+      "type": "image",
+      "path": "images.steampunk.trims_metal_N.jpg"
+    },
+    {
+      "name": "u_roughness_texture_strength",
+      "type": "float",
+      "value": 1
+    },
+    {
+      "name": "u_roughness_texture",
+      "type": "image",
+      "path": "images.steampunk.trims_metal_R.jpg"
+    }
+  ]
+}

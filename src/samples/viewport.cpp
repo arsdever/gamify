@@ -131,7 +131,7 @@ void init_scene()
     auto m =
         assets::asset_manager::get<graphics::mesh>("meshes.susane_head.fbx");
     obj->add<components::mesh_filter>().set_mesh(m);
-    obj->add<components::mesh_renderer>().set_material(basic_mat);
+    obj->add<components::mesh_renderer>().set_material(0, basic_mat);
     obj->set_name("susane");
     scene::get_active_scene()->add_root_object(obj);
 

@@ -56,6 +56,14 @@ void mesh::set_submeshes(std::vector<submesh_info> submeshes)
     _submeshes = std::move(submeshes);
 }
 
+void mesh::apply_submeshes(std::function<void(submesh_info&)> func)
+{
+    for (auto& submesh : _submeshes)
+    {
+        func(submesh);
+    }
+}
+
 void mesh::render()
 {
     if (_vao.activate())

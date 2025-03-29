@@ -13,6 +13,7 @@ public:
     {
         size_t vertex_index_offset;
         size_t vertex_count;
+        size_t index_count;
         unsigned short material_index;
     };
 
@@ -23,6 +24,7 @@ public:
     void set_indices(std::vector<int> indices);
     void recalculate_normals();
     void set_submeshes(std::vector<submesh_info> submeshes);
+    void apply_submeshes(std::function<void(submesh_info&)> func);
 
     // TODO: not the best approach
     // SUGGESTION: move the logic into the renderer class. The last will also

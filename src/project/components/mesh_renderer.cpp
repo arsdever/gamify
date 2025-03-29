@@ -16,14 +16,33 @@ mesh_renderer::mesh_renderer(game_object& obj)
 {
 }
 
-std::shared_ptr<graphics::material> mesh_renderer::get_material() const
+std::vector<std::shared_ptr<graphics::material>>
+mesh_renderer::get_materials() const
 {
-    return _material;
+    return _materials;
 }
 
-void mesh_renderer::set_material(std::shared_ptr<graphics::material> m)
+void mesh_renderer::set_materials(
+    std::vector<std::shared_ptr<graphics::material>> m)
 {
-    _material = m;
+    _materials = std::move(m);
+}
+
+std::shared_ptr<graphics::material>
+mesh_renderer::get_material(size_t index) const
+{
+    return _materials[ std::min(index, _materials.size() - 1) ];
+}
+
+void mesh_renderer::set_material(size_t index,
+                                 std::shared_ptr<graphics::material> m)
+{
+    if (index >= _materials.size())
+    {
+        _materials.resize(index + 1);
+    }
+
+    _materials[ index ] = m;
 }
 
 template <>

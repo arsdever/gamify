@@ -1,0 +1,25 @@
+{
+  "shader": "standard.standard.shader",
+  "properties": [
+    {
+      "name": "u_albedo_texture_strength",
+      "type": "float",
+      "value": 1
+    },
+    {
+      "name": "u_albedo_texture",
+      "type": "image",
+      "path": "images.steampunk.steam_control_system_BC.jpg"
+    },
+    {
+      "name": "u_roughness_texture_strength",
+      "type": "float",
+      "value": 1
+    },
+    {
+      "name": "u_roughness_texture",
+      "type": "image",
+      "path": "images.steampunk.steam_control_system_R.jpg"
+    }
+  ]
+}

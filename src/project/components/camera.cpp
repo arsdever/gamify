@@ -227,8 +227,8 @@ void camera::render_on_private_texture() const
                 {
                     auto mesh =
                         obj->template get<components::mesh_filter>().get_mesh();
-                    auto material = renderer->get_material();
-                    if (material && mesh)
+                    auto materials = renderer->get_materials();
+                    for (auto material : materials)
                     {
                         material->set_property_value(
                             "u_model_matrix",
@@ -238,8 +238,9 @@ void camera::render_on_private_texture() const
                         material->set_property_value(
                             "u_camera_position",
                             glm::vec3(get_transform()->get_position()));
-                        renderer_3d().draw_mesh(mesh, material);
                     }
+
+                    renderer_3d().draw_mesh(mesh, materials);
                 }
                 return true;
             };

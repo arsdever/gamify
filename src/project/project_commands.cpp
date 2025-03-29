@@ -81,20 +81,43 @@ std::shared_ptr<scene> cmd_load_scene::default_scene()
 
     auto go = game_object::create();
     go->add<components::mesh_filter>().set_mesh(cube_mesh);
-    go->add<components::mesh_renderer>().set_material(mat);
+    go->add<components::mesh_renderer>().set_material(0, mat);
     go->set_name("cube");
     s->add_root_object(go);
 
     go = game_object::create();
     go->add<components::mesh_filter>().set_mesh(sphere_mesh);
-    go->add<components::mesh_renderer>().set_material(blue_mat);
+    go->add<components::mesh_renderer>().set_material(0, blue_mat);
     go->set_name("sphere");
     go->get_transform().set_position({ 0, 0, 3 });
     s->add_root_object(go);
 
+    auto temple_object = game_object::create();
+    temple_object->add<components::mesh_filter>().set_mesh(
+        assets::asset_manager::get<graphics::mesh>("meshes.steampunk.fbx"));
+    auto& mr = temple_object->add<components::mesh_renderer>();
+    mr.set_material(0,
+                    assets::asset_manager::get<graphics::material>(
+                        "images.steampunk.wood_trims.mat"));
+    mr.set_material(1,
+                    assets::asset_manager::get<graphics::material>(
+                        "images.steampunk.stone_trims.mat"));
+    mr.set_material(2,
+                    assets::asset_manager::get<graphics::material>(
+                        "images.steampunk.wall_stone.mat"));
+    mr.set_material(3,
+                    assets::asset_manager::get<graphics::material>(
+                        "images.steampunk.beams_patterns.mat"));
+    mr.set_material(4,
+                    assets::asset_manager::get<graphics::material>(
+                        "images.steampunk.beams_dougong.mat"));
+    temple_object->set_name("temple");
+    temple_object->get_transform().set_position({ 3, 0, 3 });
+    go->add_child(temple_object);
+
     auto nested = game_object::create();
     nested->add<components::mesh_filter>().set_mesh(suzanne_mesh);
-    nested->add<components::mesh_renderer>().set_material(green_mat);
+    nested->add<components::mesh_renderer>().set_material(0, green_mat);
     nested->set_name("suzanne");
     nested->get_transform().set_position({ 3, 0, 0 });
     go->add_child(nested);

@@ -18,14 +18,17 @@ public:
 
     static constexpr std::string_view type_name = "mesh_renderer";
 
-    std::shared_ptr<graphics::material> get_material() const;
-    void set_material(std::shared_ptr<graphics::material> m);
+    std::vector<std::shared_ptr<graphics::material>> get_materials() const;
+    void set_materials(std::vector<std::shared_ptr<graphics::material>> m);
+
+    std::shared_ptr<graphics::material> get_material(size_t index) const;
+    void set_material(size_t index, std::shared_ptr<graphics::material> m);
 
     template <typename ST>
     void serialize(ST& s);
     void deserialize(const nlohmann::json& j);
 
 private:
-    std::shared_ptr<graphics::material> _material;
+    std::vector<std::shared_ptr<graphics::material>> _materials;
 };
 } // namespace components
