@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #include "editor_main_window.hpp"
+#include "game_context.hpp"
 
 int main(int argc, char** argv)
 {
@@ -21,6 +22,9 @@ int main(int argc, char** argv)
     glfwInit();
 
     auto gl_window = std::make_shared<core::window>();
+
+    gl_window->on_user_initialize += [](auto) { game_context::initialize(); };
+
     gl_window->init();
 
     QWindow* qt_gl_window_handle =
