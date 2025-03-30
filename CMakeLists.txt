@@ -26,6 +26,7 @@ find_package(spdlog REQUIRED)
 find_package(freetype REQUIRED)
 
 add_subdirectory(thirdparty/prof)
+add_subdirectory(thirdparty/qspdlog)
 
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/thirdparty/filewatch)
   add_library(filewatch INTERFACE IMPORTED)

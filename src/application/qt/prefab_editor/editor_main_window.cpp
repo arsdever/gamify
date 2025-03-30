@@ -1,7 +1,11 @@
 #include <QAction>
+#include <QDockWidget>
 #include <QMenu>
 #include <QMenuBar>
 #include <QStatusBar>
+
+#include <qspdlog/qspdlog.hpp>
+#include <spdlog/spdlog.h>
 
 #include "editor_main_window.hpp"
 
@@ -29,4 +33,12 @@ void EditorMainWindow::initialize()
 
     QStatusBar* statusBar = new QStatusBar(this);
     setStatusBar(statusBar);
+
+    QSpdLog* loggerWidget = new QSpdLog(this);
+    QDockWidget* loggerDock = new QDockWidget("Logger", this);
+    loggerDock->setWidget(loggerWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, loggerDock);
+
+    auto sink = loggerWidget->sink();
+    spdlog::default_logger()->sinks().push_back(sink);
 }

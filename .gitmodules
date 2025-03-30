@@ -4,3 +4,6 @@
 [submodule "thirdparty/filewatch"]
 	path = thirdparty/filewatch
 	url = https://github.com/ThomasMonkman/filewatch
+[submodule "thirdparty/qspdlog"]
+	path = thirdparty/qspdlog
+	url = https://github.com/arsdever/qspdlog

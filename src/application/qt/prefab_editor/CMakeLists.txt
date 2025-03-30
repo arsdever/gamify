@@ -16,6 +16,7 @@ target_link_libraries(${PROJECT}_apps_prefab_editor PRIVATE
 	Qt::Core
 	Qt::Gui
 	${PROJECT}::ui::widgets
+	qspdlog::lib
 )
 find_program(Qt6 QUIET Qt::windeployqt)
 
