@@ -23,9 +23,14 @@ int main(int argc, char** argv)
 
     auto gl_window = std::make_shared<core::window>();
 
-    gl_window->on_user_initialize += [](auto) { game_context::initialize(); };
-
+    gl_window->on_user_initialize += [](auto)
+    {
+        game_context::initialize();
+        game_context::load_assets();
+    };
     gl_window->init();
+
+    gl_window->get_events()->render += [](auto) { game_context::render(); };
 
     QWindow* qt_gl_window_handle =
         QWindow::fromWinId((WId)(gl_window->get_native_handle()));
@@ -35,16 +40,17 @@ int main(int argc, char** argv)
     qt_window->resize(1280, 720);
     qt_window->show();
 
-    qt_window->connect(qt_window,
-                       &EditorMainWindow::createNewObject,
-                       [] { game_context::create_new_object(); });
-
     int result = 0;
+
+    game_context::init();
 
     while (qt_window->isVisible())
     {
         // Process events in the Qt main loop
         app.processEvents();
+
+        // Update the game context
+        game_context::update();
 
         // Process events in the GLFW main loop
         gl_window->update();

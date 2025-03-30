@@ -10,9 +10,6 @@ public:
     EditorMainWindow(QWidget* parent = nullptr);
     ~EditorMainWindow() override;
 
-signals:
-    void createNewObject();
-
 private:
     void initialize();
 };

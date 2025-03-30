@@ -9,6 +9,8 @@
 
 #include "editor_main_window.hpp"
 
+#include "game_context.hpp"
+
 inline logger log() { return get_logger("editor"); }
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
@@ -29,13 +31,20 @@ void EditorMainWindow::initialize()
 
     QMenuBar* menuBar = new QMenuBar(this);
     QMenu* fileMenu = menuBar->addMenu("File");
-    QAction* newAction = fileMenu->addAction("New");
+
+    QMenu* newMenu = fileMenu->addMenu("New");
+    QAction* newGameObject = newMenu->addAction("Empty Game Object");
+    QAction* newCamera = newMenu->addAction("Camera");
+    QAction* newCube = newMenu->addAction("Cube");
+
     QAction* exitAction = fileMenu->addAction("Exit");
 
-    connect(newAction,
+    connect(newGameObject,
             &QAction::triggered,
-            this,
-            &EditorMainWindow::createNewObject);
+            [] { game_context::create_empty_game_object(); });
+    connect(
+        newCamera, &QAction::triggered, [] { game_context::create_camera(); });
+    connect(newCube, &QAction::triggered, [] { game_context::create_cube(); });
     connect(exitAction, &QAction::triggered, this, &EditorMainWindow::close);
 
     setMenuBar(menuBar);
