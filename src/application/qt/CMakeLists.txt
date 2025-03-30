@@ -1,2 +1,3 @@
 add_subdirectory(widgets)
 add_subdirectory(material_editor)
+add_subdirectory(prefab_editor)
