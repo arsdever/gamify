@@ -4,10 +4,12 @@
 #include <QMenuBar>
 #include <QStatusBar>
 
+#include <common/logging.hpp>
 #include <qspdlog/qspdlog.hpp>
-#include <spdlog/spdlog.h>
 
 #include "editor_main_window.hpp"
+
+inline logger log() { return get_logger("editor"); }
 
 EditorMainWindow::EditorMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -27,8 +29,15 @@ void EditorMainWindow::initialize()
 
     QMenuBar* menuBar = new QMenuBar(this);
     QMenu* fileMenu = menuBar->addMenu("File");
+    QAction* newAction = fileMenu->addAction("New");
     QAction* exitAction = fileMenu->addAction("Exit");
+
+    connect(newAction,
+            &QAction::triggered,
+            this,
+            &EditorMainWindow::createNewObject);
     connect(exitAction, &QAction::triggered, this, &EditorMainWindow::close);
+
     setMenuBar(menuBar);
 
     QStatusBar* statusBar = new QStatusBar(this);

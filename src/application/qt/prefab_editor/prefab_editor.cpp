@@ -35,6 +35,10 @@ int main(int argc, char** argv)
     qt_window->resize(1280, 720);
     qt_window->show();
 
+    qt_window->connect(qt_window,
+                       &EditorMainWindow::createNewObject,
+                       [] { game_context::create_new_object(); });
+
     int result = 0;
 
     while (qt_window->isVisible())

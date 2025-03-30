@@ -15,3 +15,15 @@ void game_context::initialize()
 
     log()->info("Game context initialized successfully");
 }
+
+void game_context::create_new_object()
+{
+    log()->info("Creating new game object");
+
+    auto new_object = game_object::create();
+    new_object->set_name("New Game Object");
+
+    log()->info("New game object {} ({}) was created",
+                new_object->get_name(),
+                new_object->id().id);
+}
