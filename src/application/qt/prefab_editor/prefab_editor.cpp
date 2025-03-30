@@ -1,5 +1,4 @@
 #include <QApplication>
-#include <QMainWindow>
 #include <QWindow>
 
 #include <common/main_thread_dispatcher.hpp>
@@ -7,12 +6,14 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
 
+#include "editor_main_window.hpp"
+
 int main(int argc, char** argv)
 {
     int exit_code;
 
     QApplication app(argc, argv);
-    auto qt_window = new QMainWindow();
+    auto qt_window = new EditorMainWindow();
     qt_window->setWindowTitle("Prefab Editor");
 
     common::main_thread_dispatcher::initialize();

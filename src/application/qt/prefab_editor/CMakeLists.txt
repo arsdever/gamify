@@ -4,6 +4,8 @@ set(CMAKE_AUTORCC ON)
 
 add_executable(
 	${PROJECT}_apps_prefab_editor
+	editor_main_window.cpp
+	editor_main_window.hpp
 	prefab_editor.cpp
 )
 
