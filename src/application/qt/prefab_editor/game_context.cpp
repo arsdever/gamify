@@ -14,6 +14,16 @@
 
 inline logger log() { return get_logger("game_context"); }
 
+void game_context::set_viewport_size(glm::uvec2 size)
+{
+    auto cam = components::camera::get_active();
+    if (!cam)
+    {
+        return;
+    }
+    cam->set_render_size(size);
+}
+
 void game_context::initialize()
 {
     log()->info("Initializing game context");

@@ -3,6 +3,9 @@
 
 #include <common/main_thread_dispatcher.hpp>
 #include <core/window.hpp>
+
+#include "graphics/graphics.hpp"
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
 
@@ -29,8 +32,12 @@ int main(int argc, char** argv)
         game_context::load_assets();
     };
     gl_window->init();
-
     gl_window->get_events()->render += [](auto) { game_context::render(); };
+    gl_window->get_events()->resize += [](auto re)
+    {
+        auto new_size = re.get_new_size();
+        game_context::set_viewport_size(new_size);
+    };
 
     QWindow* qt_gl_window_handle =
         QWindow::fromWinId((WId)(gl_window->get_native_handle()));

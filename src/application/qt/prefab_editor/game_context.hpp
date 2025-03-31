@@ -3,6 +3,7 @@
 class game_context
 {
 public:
+    static void set_viewport_size(glm::uvec2 size);
     static void initialize();
     static void load_assets();
     static void render();
