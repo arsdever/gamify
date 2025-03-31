@@ -4,6 +4,7 @@
 
 #include "project/project_fwd.hpp"
 
+#include "common/event.hpp"
 #include "project/component_interface/component.hpp"
 
 namespace components
@@ -53,6 +54,10 @@ public:
     void serialize(ST& s);
 
     void deserialize(const nlohmann::json& j);
+
+    event<void(const glm::dvec3&)> on_position_changed;
+    event<void(const glm::dquat&)> on_rotation_changed;
+    event<void(const glm::dvec3&)> on_scale_changed;
 
 protected:
     virtual void on_update();

@@ -21,6 +21,7 @@ void transform::set_position(const glm::dvec3& position)
     _position = position;
     _dirty = true;
     _updated = true;
+    on_position_changed(_position);
 }
 
 void transform::set_rotation(const glm::dquat& rotation)
@@ -28,6 +29,7 @@ void transform::set_rotation(const glm::dquat& rotation)
     _rotation = rotation;
     _dirty = true;
     _updated = true;
+    on_rotation_changed(_rotation);
 }
 
 void transform::set_rotation(const glm::dvec3& rotation)
@@ -35,6 +37,7 @@ void transform::set_rotation(const glm::dvec3& rotation)
     _rotation = glm::dquat(rotation);
     _dirty = true;
     _updated = true;
+    on_rotation_changed(_rotation);
 }
 
 void transform::set_scale(const glm::dvec3& scale)
@@ -42,6 +45,7 @@ void transform::set_scale(const glm::dvec3& scale)
     _scale = scale;
     _dirty = true;
     _updated = true;
+    on_scale_changed(_scale);
 }
 
 template <>
@@ -117,18 +121,11 @@ glm::dvec3 transform::get_up() const
 
 bool transform::is_updated() const { return _updated; }
 
-void transform::move(glm::dvec3 offset)
-{
-    _position += offset;
-    _dirty = true;
-    _updated = true;
-}
+void transform::move(glm::dvec3 offset) { set_position(_position + offset); }
 
 void transform::rotate(const glm::dvec3& axis, double angle)
 {
-    _rotation = glm::angleAxis(angle, axis) * _rotation;
-    _dirty = true;
-    _updated = true;
+    set_rotation(glm::angleAxis(angle, axis) * _rotation);
 }
 
 template <>
