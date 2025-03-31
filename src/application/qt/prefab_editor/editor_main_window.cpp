@@ -5,11 +5,14 @@
 #include <QStatusBar>
 
 #include <common/logging.hpp>
+#include <project/components/transform.hpp>
+#include <project/game_object.hpp>
 #include <qspdlog/qspdlog.hpp>
 
 #include "editor_main_window.hpp"
 
 #include "game_context.hpp"
+#include "transform_inspector.hpp"
 
 inline logger log() { return get_logger("editor"); }
 
@@ -59,4 +62,21 @@ void EditorMainWindow::initialize()
 
     auto sink = loggerWidget->sink();
     spdlog::default_logger()->sinks().push_back(sink);
+
+    game_context::on_object_selected += [ this ](auto obj)
+    {
+        auto gobj = std::static_pointer_cast<game_object>(obj);
+        auto transform =
+            gobj->get_transform()
+                .template shared_from_this<components::transform>();
+        if (transform)
+        {
+            auto inspector = new TransformInspector(transform);
+            QDockWidget* inspectorDock =
+                new QDockWidget(QString::fromStdString(obj->get_name()), this);
+            inspectorDock->setWidget(inspector);
+            addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
+            inspectorDock->setAttribute(Qt::WA_DeleteOnClose);
+        }
+    };
 }

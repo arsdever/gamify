@@ -78,6 +78,7 @@ void game_context::create_empty_game_object()
                 new_object->get_name(),
                 new_object->id().id);
     new_object->init();
+    on_object_selected(new_object);
     scene::get_active_scene()->add_root_object(new_object);
 }
 
@@ -93,6 +94,7 @@ void game_context::create_camera()
     cam.set_background_color({ 0.1f, 0.1f, 0.1f, 1.0f });
     cam.set_active();
     obj->init();
+    on_object_selected(obj);
     scene::get_active_scene()->add_root_object(obj);
 }
 
@@ -110,5 +112,8 @@ void game_context::create_cube()
         assets::asset_manager::get<graphics::material>(
             "standard.standard.mat"));
     obj->init();
+    on_object_selected(obj);
     scene::get_active_scene()->add_root_object(obj);
 }
+
+event<void(std::shared_ptr<object>)> game_context::on_object_selected;

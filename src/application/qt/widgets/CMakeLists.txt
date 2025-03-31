@@ -9,6 +9,8 @@ add_library(
 	color_widget.cpp
 	texture_widget.hpp
 	texture_widget.cpp
+	vec3_widget.hpp
+	vec3_widget.cpp
 )
 add_library(${PROJECT}::ui::widgets ALIAS ${PROJECT}_ui_widgets)
 

@@ -9,6 +9,8 @@ add_executable(
 	game_context.cpp
 	game_context.hpp
 	prefab_editor.cpp
+	transform_inspector.cpp
+	transform_inspector.hpp
 )
 
 target_link_libraries(${PROJECT}_apps_prefab_editor PRIVATE
