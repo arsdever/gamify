@@ -18,10 +18,21 @@ TransformInspector::TransformInspector(std::shared_ptr<components::transform> t,
 
     layout->addWidget(new QLabel("Position", this));
     layout->addWidget(posWidget);
+    posWidget->setDecimals(3);
+
     layout->addWidget(new QLabel("Rotation", this));
     layout->addWidget(rotWidget);
+
+    rotWidget->setSingleStep(glm::vec3 { M_PI / 360.0f });
+    rotWidget->setStep(glm::vec3 { M_PI / 3.0f / 360.0f });
+    rotWidget->setPageStep(glm::vec3 { M_PI / 30.0f });
+    rotWidget->setRangeMin(glm::vec3 { -M_PI });
+    rotWidget->setRangeMax(glm::vec3 { M_PI });
+    rotWidget->setDecimals(3);
+
     layout->addWidget(new QLabel("Scale", this));
     layout->addWidget(scWidget);
+    scWidget->setDecimals(3);
 
     auto valueSetter = [](ui::Vec3Widget* widget, glm::vec3 value)
     {
