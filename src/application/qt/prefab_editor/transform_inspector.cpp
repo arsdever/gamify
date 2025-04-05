@@ -8,19 +8,25 @@
 
 TransformInspector::TransformInspector(std::shared_ptr<components::transform> t,
                                        QWidget* parent)
+    : QScrollArea(parent)
 {
-    auto layout = new QVBoxLayout(this);
-    setLayout(layout);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setWidgetResizable(true);
 
-    auto posWidget = new ui::Vec3Widget(this);
-    auto rotWidget = new ui::Vec3Widget(this);
-    auto scWidget = new ui::Vec3Widget(this);
+    QWidget* widget = new QWidget(this);
 
-    layout->addWidget(new QLabel("Position", this));
+    auto layout = new QVBoxLayout();
+    widget->setLayout(layout);
+
+    auto posWidget = new ui::Vec3Widget();
+    auto rotWidget = new ui::Vec3Widget();
+    auto scWidget = new ui::Vec3Widget();
+
+    layout->addWidget(new QLabel("Position"));
     layout->addWidget(posWidget);
     posWidget->setDecimals(3);
 
-    layout->addWidget(new QLabel("Rotation", this));
+    layout->addWidget(new QLabel("Rotation"));
     layout->addWidget(rotWidget);
 
     rotWidget->setSingleStep(glm::vec3 { M_PI / 360.0f });
@@ -30,7 +36,7 @@ TransformInspector::TransformInspector(std::shared_ptr<components::transform> t,
     rotWidget->setRangeMax(glm::vec3 { M_PI });
     rotWidget->setDecimals(3);
 
-    layout->addWidget(new QLabel("Scale", this));
+    layout->addWidget(new QLabel("Scale"));
     layout->addWidget(scWidget);
     scWidget->setDecimals(3);
 
@@ -70,4 +76,6 @@ TransformInspector::TransformInspector(std::shared_ptr<components::transform> t,
 
     layout->addItem(
         new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
+
+    setWidget(widget);
 }

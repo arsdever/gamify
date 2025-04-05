@@ -1,8 +1,10 @@
 #pragma once
 
+#include <QScrollArea>
+
 #include "project/project_fwd.hpp"
 
-class TransformInspector : public QWidget
+class TransformInspector : public QScrollArea
 {
     Q_OBJECT
 public:
