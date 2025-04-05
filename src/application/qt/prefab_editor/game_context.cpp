@@ -85,7 +85,7 @@ void game_context::create_empty_game_object()
 void game_context::create_camera()
 {
     auto obj = game_object::create();
-    obj->set_name("New Game Object");
+    obj->set_name("Camera");
 
     log()->info(
         "New game object {} ({}) was created", obj->get_name(), obj->id().id);
@@ -101,7 +101,7 @@ void game_context::create_camera()
 void game_context::create_cube()
 {
     auto obj = game_object::create();
-    obj->set_name("New Game Object");
+    obj->set_name("Cube");
 
     log()->info(
         "New game object {} ({}) was created", obj->get_name(), obj->id().id);
