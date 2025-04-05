@@ -21,6 +21,10 @@ class flying_camera(pycomponent):
     def on_update(self):
         tr = self.transform()
         input = self.get("camera_input")
+
+        if not input:
+            return
+
         diff = input.move
         updown = input.updown
         movement = (tr.right() * diff.x + tr.forward()
