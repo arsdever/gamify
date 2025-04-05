@@ -138,7 +138,10 @@ void transform::set_property_value(std::string_view name,
     }
     if (name == "rotation")
     {
-        set_rotation(std::get<glm::dquat>(value));
+        if (std::holds_alternative<glm::dvec3>(value))
+            set_rotation(std::get<glm::dvec3>(value));
+        else if (std::holds_alternative<glm::dquat>(value))
+            set_rotation(std::get<glm::dquat>(value));
         return;
     }
     if (name == "scale")
@@ -153,7 +156,7 @@ void transform::for_each_property(const property_visitor_type& visitor) const
 {
     base::for_each_property(visitor);
     visitor("position", "Position", _position);
-    visitor("rotation", "Rotation", _rotation);
+    visitor("rotation", "Rotation", glm::eulerAngles(_rotation));
     visitor("scale", "Scale", _scale);
 }
 

@@ -93,6 +93,8 @@ void game_context::create_camera()
     auto& cam = obj->add<components::camera>();
     cam.set_background_color({ 0.1f, 0.1f, 0.1f, 1.0f });
     cam.set_active();
+    obj->add("flying_camera");
+    obj->add("camera_input");
     obj->init();
     on_object_selected(obj);
     scene::get_active_scene()->add_root_object(obj);

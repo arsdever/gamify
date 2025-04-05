@@ -78,7 +78,8 @@ void InspectorWidget::resetInspector()
                                    std::string_view prop_display_name,
                                    const auto& prop_value) -> bool
         {
-            log()->debug("Property: {}({})", prop_display_name, prop_name);
+            std::string prop_name_str(prop_name);
+            log()->debug("Property: {}({})", prop_display_name, prop_name_str);
             switch (prop_value.index())
             {
             case variant_index_v<trivial_types::variant_t, bool>:
@@ -86,6 +87,14 @@ void InspectorWidget::resetInspector()
                 QCheckBox* checkBox = new QCheckBox(QString::fromLatin1(
                     prop_display_name.data(), prop_display_name.size()));
                 layout->addWidget(checkBox);
+                checkBox->setChecked(std::get<bool>(prop_value) == true);
+                checkBox->connect(checkBox,
+                                  &QCheckBox::stateChanged,
+                                  [ prop_name_str, &component ](auto state)
+                {
+                    component.set_property_value(prop_name_str,
+                                                 state == Qt::Checked);
+                });
                 break;
             }
             case variant_index_v<trivial_types::variant_t, glm::dvec3>:
@@ -98,9 +107,10 @@ void InspectorWidget::resetInspector()
                 layout->addWidget(vec3Widget);
                 vec3Widget->connect(vec3Widget,
                                     &ui::Vec3Widget::valueChanged,
-                                    [ prop_name, &component ](auto value)
+                                    [ prop_name_str, &component ](auto value)
                 {
-                    component.set_property_value(prop_name, glm::dvec3(value));
+                    component.set_property_value(prop_name_str,
+                                                 glm::dvec3(value));
                 });
                 break;
             }

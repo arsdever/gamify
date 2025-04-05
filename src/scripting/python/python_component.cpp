@@ -64,6 +64,40 @@ void python_component::set_property_value(std::string_view name,
     component::set_property_value(name, value);
 }
 
+void python_component::for_each_property(
+    const property_visitor_type& visitor) const
+{
+    base::for_each_property(visitor);
+
+    if (_instance)
+    {
+        for (auto name : _instance.attr("__dict__"))
+        {
+            log()->info("{}", name.cast<std::string>());
+
+            constexpr size_t variant_size =
+                std::variant_size_v<trivial_types::variant_t>;
+
+            bool handled = false;
+
+            // Use a constexpr loop to iterate over all variant alternatives
+            [ & ]<std::size_t... I>(std::index_sequence<I...>)
+            {
+                ((handled = handled ||
+                  (pybind11::isinstance<std::variant_alternative_t<I,
+                  trivial_types::variant_t>>(_instance.attr(name)) &&
+                   ([&]() {
+                       auto value =
+                       _instance.attr(name).cast<std::variant_alternative_t<I,
+                       trivial_types::variant_t>>();
+                       visitor(name.cast<std::string>(),
+                       name.cast<std::string>(), value); return true;
+                   }()))), ...);
+            }(std::make_index_sequence<variant_size> {});
+        }
+    }
+}
+
 namespace internal
 {
 void python_component_trampoline::on_init()
@@ -109,6 +143,19 @@ void python_component_trampoline::set_property_value(
     {
         PYBIND11_OVERRIDE(
             void, python_component, set_property_value, name, value);
+    }
+    catch (std::exception& e)
+    {
+        log()->error("{}", e.what());
+    }
+}
+
+void python_component_trampoline::for_each_property(
+    const property_visitor_type& visitor) const
+{
+    try
+    {
+        PYBIND11_OVERRIDE(void, python_component, for_each_property, visitor);
     }
     catch (std::exception& e)
     {

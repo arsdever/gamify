@@ -2,7 +2,9 @@
 #include <QWindow>
 
 #include <common/main_thread_dispatcher.hpp>
+#include <core/input_system.hpp>
 #include <core/window.hpp>
+#include <scripting/backend.hpp>
 
 #include "graphics/graphics.hpp"
 
@@ -26,9 +28,12 @@ int main(int argc, char** argv)
 
     auto gl_window = std::make_shared<core::window>();
 
-    gl_window->on_user_initialize += [](auto)
+    gl_window->on_user_initialize += [ gl_window ](auto)
     {
         game_context::initialize();
+        core::input_system::set_input_source(gl_window);
+        core::input_system::update_device_list();
+        scripting::backend::initialize();
         game_context::load_assets();
     };
     gl_window->init();
@@ -58,6 +63,7 @@ int main(int argc, char** argv)
 
         // Update the game context
         game_context::update();
+        common::main_thread_dispatcher::run_all();
 
         // Process events in the GLFW main loop
         gl_window->update();
