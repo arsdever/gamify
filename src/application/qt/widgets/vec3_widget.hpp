@@ -11,7 +11,10 @@ class Vec3Widget : public QWidget
     Q_OBJECT
 public:
     Vec3Widget(QWidget* parent = nullptr);
-    ~Vec3Widget() = default;
+    ~Vec3Widget();
+
+    void setLabel(const QString& label);
+    QString label() const;
 
     void setValue(glm::vec3 value, bool force = false);
     glm::vec3 value();
@@ -35,9 +38,7 @@ signals:
     void valueChanged(glm::vec3 color);
 
 private:
-    glm::vec3 _value { 0 };
-    SpinBox* _xSpinBox { nullptr };
-    SpinBox* _ySpinBox { nullptr };
-    SpinBox* _zSpinBox { nullptr };
+    struct Vec3WidgetPrivate;
+    std::unique_ptr<Vec3WidgetPrivate> _p;
 };
 } // namespace ui

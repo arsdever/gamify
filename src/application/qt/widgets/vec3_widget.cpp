@@ -8,187 +8,217 @@
 
 namespace ui
 {
+struct Vec3Widget::Vec3WidgetPrivate
+{
+    glm::vec3 _value { 0 };
+    QLabel* _label { nullptr };
+    SpinBox* _xSpinBox { nullptr };
+    SpinBox* _ySpinBox { nullptr };
+    SpinBox* _zSpinBox { nullptr };
+};
+
 Vec3Widget::Vec3Widget(QWidget* parent)
     : QWidget(parent)
 {
-    auto layout = new QVBoxLayout(this);
-    setLayout(layout);
+    _p = std::make_unique<Vec3WidgetPrivate>();
 
-    setMinimumSize(100, 0);
-
-    _xSpinBox = new SpinBox(this);
-    _ySpinBox = new SpinBox(this);
-    _zSpinBox = new SpinBox(this);
-
-    layout->addWidget(_xSpinBox);
-    layout->addWidget(_ySpinBox);
-    layout->addWidget(_zSpinBox);
-    layout->setSpacing(0);
-
-    _xSpinBox->setLabel("x");
-    _ySpinBox->setLabel("y");
-    _zSpinBox->setLabel("z");
-
-    _xSpinBox->setRange(-1000000, 1000000);
-    _ySpinBox->setRange(-1000000, 1000000);
-    _zSpinBox->setRange(-1000000, 1000000);
-
-    _xSpinBox->setDecimals(6);
-    _ySpinBox->setDecimals(6);
-    _zSpinBox->setDecimals(6);
-
-    _xSpinBox->setStep(0.01);
-    _ySpinBox->setStep(0.01);
-    _zSpinBox->setStep(0.01);
-
-    _xSpinBox->setSingleStep(0.1);
-    _ySpinBox->setSingleStep(0.1);
-    _zSpinBox->setSingleStep(0.1);
-
-    _xSpinBox->setPageStep(10);
-    _ySpinBox->setPageStep(10);
-    _zSpinBox->setPageStep(10);
-
-    _xSpinBox->setValue(0);
-    _ySpinBox->setValue(0);
-    _zSpinBox->setValue(0);
-
-    connect(_xSpinBox,
-            &SpinBox::valueChanged,
-            this,
-            [ this ](double value)
+    QWidget* spinBoxContainer = new QWidget(this);
     {
-        _value.x = value;
-        emit valueChanged(_value);
-    });
-    connect(_ySpinBox,
-            &SpinBox::valueChanged,
-            this,
-            [ this ](double value)
-    {
-        _value.y = value;
-        emit valueChanged(_value);
-    });
-    connect(_zSpinBox,
-            &SpinBox::valueChanged,
-            this,
-            [ this ](double value)
-    {
-        _value.z = value;
-        emit valueChanged(_value);
-    });
+        auto layout = new QVBoxLayout(this);
+        spinBoxContainer->setLayout(layout);
+
+        setMinimumSize(100, 0);
+
+        _p->_xSpinBox = new SpinBox(this);
+        _p->_ySpinBox = new SpinBox(this);
+        _p->_zSpinBox = new SpinBox(this);
+
+        layout->addWidget(_p->_xSpinBox);
+        layout->addWidget(_p->_ySpinBox);
+        layout->addWidget(_p->_zSpinBox);
+        layout->setSpacing(0);
+
+        _p->_xSpinBox->setLabel("x");
+        _p->_ySpinBox->setLabel("y");
+        _p->_zSpinBox->setLabel("z");
+
+        _p->_xSpinBox->setRange(-1000000, 1000000);
+        _p->_ySpinBox->setRange(-1000000, 1000000);
+        _p->_zSpinBox->setRange(-1000000, 1000000);
+
+        _p->_xSpinBox->setDecimals(6);
+        _p->_ySpinBox->setDecimals(6);
+        _p->_zSpinBox->setDecimals(6);
+
+        _p->_xSpinBox->setStep(0.01);
+        _p->_ySpinBox->setStep(0.01);
+        _p->_zSpinBox->setStep(0.01);
+
+        _p->_xSpinBox->setSingleStep(0.1);
+        _p->_ySpinBox->setSingleStep(0.1);
+        _p->_zSpinBox->setSingleStep(0.1);
+
+        _p->_xSpinBox->setPageStep(10);
+        _p->_ySpinBox->setPageStep(10);
+        _p->_zSpinBox->setPageStep(10);
+
+        _p->_xSpinBox->setValue(0);
+        _p->_ySpinBox->setValue(0);
+        _p->_zSpinBox->setValue(0);
+
+        connect(_p->_xSpinBox,
+                &SpinBox::valueChanged,
+                this,
+                [ this ](double value)
+        {
+            _p->_value.x = value;
+            emit valueChanged(_p->_value);
+        });
+        connect(_p->_ySpinBox,
+                &SpinBox::valueChanged,
+                this,
+                [ this ](double value)
+        {
+            _p->_value.y = value;
+            emit valueChanged(_p->_value);
+        });
+        connect(_p->_zSpinBox,
+                &SpinBox::valueChanged,
+                this,
+                [ this ](double value)
+        {
+            _p->_value.z = value;
+            emit valueChanged(_p->_value);
+        });
+    }
+
+    setLayout(new QVBoxLayout(this));
+    layout()->setSpacing(0);
+    _p->_label = new QLabel(this);
+    layout()->addWidget(_p->_label);
+    layout()->addWidget(spinBoxContainer);
+    layout()->addItem(
+        new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
 }
+
+Vec3Widget::~Vec3Widget() = default;
+
+void Vec3Widget::setLabel(const QString& label) { _p->_label->setText(label); }
+
+QString Vec3Widget::label() const { return _p->_label->text(); }
 
 void Vec3Widget::setRangeMin(glm::vec3 min)
 {
     auto oldMax = max();
-    _xSpinBox->setRange(min.x, oldMax.x);
-    _ySpinBox->setRange(min.y, oldMax.y);
-    _zSpinBox->setRange(min.z, oldMax.z);
+    _p->_xSpinBox->setRange(min.x, oldMax.x);
+    _p->_ySpinBox->setRange(min.y, oldMax.y);
+    _p->_zSpinBox->setRange(min.z, oldMax.z);
 }
 
 void Vec3Widget::setRangeMax(glm::vec3 max)
 {
     auto oldMin = min();
-    _xSpinBox->setRange(oldMin.x, max.x);
-    _ySpinBox->setRange(oldMin.y, max.y);
-    _zSpinBox->setRange(oldMin.z, max.z);
+    _p->_xSpinBox->setRange(oldMin.x, max.x);
+    _p->_ySpinBox->setRange(oldMin.y, max.y);
+    _p->_zSpinBox->setRange(oldMin.z, max.z);
 }
 
 glm::vec3 Vec3Widget::min() const
 {
-    return { _xSpinBox->min(), _ySpinBox->min(), _zSpinBox->min() };
+    return { _p->_xSpinBox->min(), _p->_ySpinBox->min(), _p->_zSpinBox->min() };
 }
 
 glm::vec3 Vec3Widget::max() const
 {
-    return { _xSpinBox->max(), _ySpinBox->max(), _zSpinBox->max() };
+    return { _p->_xSpinBox->max(), _p->_ySpinBox->max(), _p->_zSpinBox->max() };
 }
 
 void Vec3Widget::setStep(glm::vec3 step)
 {
-    _xSpinBox->setStep(step.x);
-    _ySpinBox->setStep(step.y);
-    _zSpinBox->setStep(step.z);
+    _p->_xSpinBox->setStep(step.x);
+    _p->_ySpinBox->setStep(step.y);
+    _p->_zSpinBox->setStep(step.z);
 }
 
 glm::vec3 Vec3Widget::step() const
 {
-    return { _xSpinBox->step(), _ySpinBox->step(), _zSpinBox->step() };
+    return { _p->_xSpinBox->step(),
+             _p->_ySpinBox->step(),
+             _p->_zSpinBox->step() };
 }
 
 void Vec3Widget::setSingleStep(glm::vec3 step)
 {
-    _xSpinBox->setSingleStep(step.x);
-    _ySpinBox->setSingleStep(step.y);
-    _zSpinBox->setSingleStep(step.z);
+    _p->_xSpinBox->setSingleStep(step.x);
+    _p->_ySpinBox->setSingleStep(step.y);
+    _p->_zSpinBox->setSingleStep(step.z);
 }
 
 glm::vec3 Vec3Widget::singleStep() const
 {
-    return { _xSpinBox->singleStep(),
-             _ySpinBox->singleStep(),
-             _zSpinBox->singleStep() };
+    return { _p->_xSpinBox->singleStep(),
+             _p->_ySpinBox->singleStep(),
+             _p->_zSpinBox->singleStep() };
 }
 
 void Vec3Widget::setPageStep(glm::vec3 step)
 {
-    _xSpinBox->setPageStep(step.x);
-    _ySpinBox->setPageStep(step.y);
-    _zSpinBox->setPageStep(step.z);
+    _p->_xSpinBox->setPageStep(step.x);
+    _p->_ySpinBox->setPageStep(step.y);
+    _p->_zSpinBox->setPageStep(step.z);
 }
 
 glm::vec3 Vec3Widget::pageStep() const
 {
-    return { _xSpinBox->pageStep(),
-             _ySpinBox->pageStep(),
-             _zSpinBox->pageStep() };
+    return { _p->_xSpinBox->pageStep(),
+             _p->_ySpinBox->pageStep(),
+             _p->_zSpinBox->pageStep() };
 }
 
 void Vec3Widget::setDecimals(int decimals)
 {
-    _xSpinBox->setDecimals(decimals);
-    _ySpinBox->setDecimals(decimals);
-    _zSpinBox->setDecimals(decimals);
+    _p->_xSpinBox->setDecimals(decimals);
+    _p->_ySpinBox->setDecimals(decimals);
+    _p->_zSpinBox->setDecimals(decimals);
 }
 
 int Vec3Widget::decimals() const
 {
     // It's the same for all three spin boxes, so we can just return one of them
-    return _xSpinBox->decimals();
+    return _p->_xSpinBox->decimals();
 }
 
 void Vec3Widget::setAccelerated(bool accelerated)
 {
-    _xSpinBox->setAccelerated(accelerated);
-    _ySpinBox->setAccelerated(accelerated);
-    _zSpinBox->setAccelerated(accelerated);
+    _p->_xSpinBox->setAccelerated(accelerated);
+    _p->_ySpinBox->setAccelerated(accelerated);
+    _p->_zSpinBox->setAccelerated(accelerated);
 }
 
 bool Vec3Widget::isAccelerated() const
 {
     // It's the same for all three spin boxes, so we can just return one of them
     // them.
-    return _xSpinBox->isAccelerated();
+    return _p->_xSpinBox->isAccelerated();
 }
 
 void Vec3Widget::setValue(glm::vec3 value, bool force)
 {
-    if (force || (_value != value))
+    if (force || (_p->_value != value))
     {
-        _value = value;
-        bool xB = _xSpinBox->blockSignals(true);
-        bool yB = _ySpinBox->blockSignals(true);
-        bool zB = _zSpinBox->blockSignals(true);
-        _xSpinBox->setValue(_value.x);
-        _ySpinBox->setValue(_value.y);
-        _zSpinBox->setValue(_value.z);
-        _xSpinBox->blockSignals(xB);
-        _ySpinBox->blockSignals(yB);
-        _zSpinBox->blockSignals(zB);
-        emit valueChanged(_value);
+        _p->_value = value;
+        bool xB = _p->_xSpinBox->blockSignals(true);
+        bool yB = _p->_ySpinBox->blockSignals(true);
+        bool zB = _p->_zSpinBox->blockSignals(true);
+        _p->_xSpinBox->setValue(_p->_value.x);
+        _p->_ySpinBox->setValue(_p->_value.y);
+        _p->_zSpinBox->setValue(_p->_value.z);
+        _p->_xSpinBox->blockSignals(xB);
+        _p->_ySpinBox->blockSignals(yB);
+        _p->_zSpinBox->blockSignals(zB);
+        emit valueChanged(_p->_value);
     }
 }
 
-glm::vec3 Vec3Widget::value() { return _value; }
+glm::vec3 Vec3Widget::value() { return _p->_value; }
 } // namespace ui

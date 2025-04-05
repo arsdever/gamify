@@ -4,6 +4,7 @@
 #include <QMenuBar>
 #include <QStatusBar>
 
+#include <application/qt/widgets/inspector_widget.hpp>
 #include <common/logging.hpp>
 #include <project/components/transform.hpp>
 #include <project/game_object.hpp>
@@ -63,20 +64,15 @@ void EditorMainWindow::initialize()
     auto sink = loggerWidget->sink();
     spdlog::default_logger()->sinks().push_back(sink);
 
-    game_context::on_object_selected += [ this ](auto obj)
+    auto inspector = new ui::InspectorWidget();
+    QDockWidget* inspectorDock = new QDockWidget("Inspector", this);
+    inspectorDock->setWidget(inspector);
+    addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
+    inspectorDock->setAttribute(Qt::WA_DeleteOnClose);
+
+    game_context::on_object_selected += [ inspector ](auto obj)
     {
         auto gobj = std::static_pointer_cast<game_object>(obj);
-        auto transform =
-            gobj->get_transform()
-                .template shared_from_this<components::transform>();
-        if (transform)
-        {
-            auto inspector = new TransformInspector(transform);
-            QDockWidget* inspectorDock =
-                new QDockWidget(QString::fromStdString(obj->get_name()), this);
-            inspectorDock->setWidget(inspector);
-            addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
-            inspectorDock->setAttribute(Qt::WA_DeleteOnClose);
-        }
+        inspector->setInspectingObject(gobj);
     };
 }

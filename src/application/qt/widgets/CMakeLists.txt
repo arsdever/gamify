@@ -9,6 +9,8 @@ add_library(
 	color_widget.cpp
 	texture_widget.hpp
 	texture_widget.cpp
+	inspector_widget.hpp
+	inspector_widget.cpp
 	spinbox.hpp
 	spinbox.cpp
 	vec3_widget.hpp

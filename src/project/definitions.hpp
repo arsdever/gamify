@@ -2,7 +2,8 @@
 
 #include "common/utils.hpp"
 
-using trivial_types = type_list<char,
+using trivial_types = type_list<bool,
+                                char,
                                 short,
                                 int,
                                 long,

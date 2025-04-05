@@ -10,6 +10,10 @@
 class component : public object
 {
 public:
+    using property_visitor_type = std::function<bool(
+        std::string_view, std::string_view, const trivial_types::variant_t&)>;
+
+public:
     game_object& get_game_object() const;
 
     std::shared_ptr<components::transform> get_transform() const;
@@ -34,6 +38,9 @@ public:
 
     virtual void set_property_value(std::string_view name,
                                     trivial_types::variant_t value);
+
+    virtual void for_each_property(const property_visitor_type& visitor) const;
+    std::string name() const;
 
     void init();
     void update();

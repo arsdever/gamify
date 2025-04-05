@@ -44,9 +44,20 @@ bool component::is_enabled() const { return _is_enabled; }
 void component::set_property_value(std::string_view name,
                                    trivial_types::variant_t value)
 {
-    log()->error("{} has no property {}", _type_info.name, name);
+    if (name == "is_enabled")
+    {
+        set_enabled(std::get<bool>(value));
+        return;
+    }
     return;
 }
+
+void component::for_each_property(const property_visitor_type& visitor) const
+{
+    visitor("is_enabled", "Is Enabled", _is_enabled);
+}
+
+std::string component::name() const { return _type_info.name; }
 
 void component::init()
 {

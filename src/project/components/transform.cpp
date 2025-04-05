@@ -128,6 +128,35 @@ void transform::rotate(const glm::dvec3& axis, double angle)
     set_rotation(glm::angleAxis(angle, axis) * _rotation);
 }
 
+void transform::set_property_value(std::string_view name,
+                                   trivial_types::variant_t value)
+{
+    if (name == "position")
+    {
+        set_position(std::get<glm::dvec3>(value));
+        return;
+    }
+    if (name == "rotation")
+    {
+        set_rotation(std::get<glm::dquat>(value));
+        return;
+    }
+    if (name == "scale")
+    {
+        set_scale(std::get<glm::dvec3>(value));
+        return;
+    }
+    base::set_property_value(name, value);
+}
+
+void transform::for_each_property(const property_visitor_type& visitor) const
+{
+    base::for_each_property(visitor);
+    visitor("position", "Position", _position);
+    visitor("rotation", "Rotation", _rotation);
+    visitor("scale", "Scale", _scale);
+}
+
 template <>
 void transform::serialize<json_serializer>(json_serializer& s)
 {
