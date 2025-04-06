@@ -5,6 +5,8 @@ set(CMAKE_AUTORCC ON)
 add_library(
 	${PROJECT}_ui_widgets
 	STATIC
+	collapsible_widget.hpp
+	collapsible_widget.cpp
 	color_widget.hpp
 	color_widget.cpp
 	texture_widget.hpp

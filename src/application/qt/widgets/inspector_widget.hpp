@@ -16,6 +16,8 @@ public:
     void setInspectingObject(std::shared_ptr<game_object> t);
     void resetInspector();
 
+    QSize sizeHint() const override;
+
 private:
     struct InspectorWidgetPrivate;
     std::unique_ptr<InspectorWidgetPrivate> _p;

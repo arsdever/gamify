@@ -97,6 +97,7 @@ Vec3Widget::Vec3Widget(QWidget* parent)
     _p->_label = new QLabel(this);
     layout()->addWidget(_p->_label);
     layout()->addWidget(spinBoxContainer);
+    layout()->setContentsMargins(QMargins(0, 0, 0, 0));
     layout()->addItem(
         new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
 }

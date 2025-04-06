@@ -1,14 +1,17 @@
 #include <QCheckBox>
 #include <QFrame>
 #include <QLabel>
+#include <QStackedWidget>
 #include <QVBoxLayout>
 
 #include <common/logging.hpp>
 #include <project/component_interface/component.hpp>
 #include <project/game_object.hpp>
+#include <qcombobox.h>
 
 #include "inspector_widget.hpp"
 
+#include "collapsible_widget.hpp"
 #include "vec3_widget.hpp"
 
 namespace ui
@@ -53,26 +56,15 @@ void InspectorWidget::resetInspector()
 
     auto layout = static_cast<QVBoxLayout*>(widget()->layout());
 
-    _p->_gameObject->visit_components(
-        [ originalLayout = layout ](auto& component) -> bool
+    _p->_gameObject->visit_components([ mainLayout = layout ](auto& component)
     {
         log()->debug("Component: {}", component.name());
-        QFrame* frame = new QFrame();
-        frame->setFrameShape(QFrame::StyledPanel);
-        frame->setFrameShadow(QFrame::Raised);
-        frame->setLineWidth(1);
-        frame->setMidLineWidth(1);
 
-        originalLayout->addWidget(frame);
+        auto* collapsibleWidget = new CollapsibleWidget(QString::fromLatin1(
+            component.name().data(), component.name().size()));
+        mainLayout->addWidget(collapsibleWidget);
+        auto layout = new QVBoxLayout();
 
-        auto layout = new QVBoxLayout(frame);
-        layout->setContentsMargins(0, 0, 0, 0);
-        layout->setSpacing(0);
-        layout->setAlignment(Qt::AlignTop);
-        frame->setLayout(layout);
-
-        layout->addWidget(new QLabel(QString::fromLatin1(
-            component.name().data(), component.name().size())));
         component.for_each_property(
             [ layout, &component ](std::string_view prop_name,
                                    std::string_view prop_display_name,
@@ -119,6 +111,8 @@ void InspectorWidget::resetInspector()
             return true;
         });
 
+        collapsibleWidget->setContentLayout(layout);
+        layout->setSpacing(0);
         layout->addItem(new QSpacerItem(
             0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
         return true;
@@ -127,4 +121,6 @@ void InspectorWidget::resetInspector()
     layout->addItem(
         new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));
 }
+
+QSize InspectorWidget::sizeHint() const { return QSize(200, 800); }
 } // namespace ui
