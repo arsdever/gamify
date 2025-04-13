@@ -71,9 +71,11 @@ void python_component::for_each_property(
 
     if (_instance)
     {
+        auto classname = _instance.attr("__class__").attr("__name__");
+        log()->debug("Visiting class '{}'", classname.cast<std::string>());
         for (auto name : _instance.attr("__dict__"))
         {
-            log()->info("{}", name.cast<std::string>());
+            log()->debug("Property {}", name.cast<std::string>());
 
             constexpr size_t variant_size =
                 std::variant_size_v<trivial_types::variant_t>;
