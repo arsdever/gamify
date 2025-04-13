@@ -23,6 +23,9 @@ public:
     bool visit_children(
         std::function<bool(const std::shared_ptr<game_object>&)> visitor) const;
 
+    size_t get_child_index(std::shared_ptr<game_object> child) const;
+    size_t get_child_count() const;
+
     component& add(std::string_view class_name);
     void remove(std::shared_ptr<component> cmp);
 

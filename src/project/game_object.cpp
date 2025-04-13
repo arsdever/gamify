@@ -91,6 +91,16 @@ bool game_object::visit_children(
     return true;
 }
 
+size_t game_object::get_child_index(std::shared_ptr<game_object> child) const
+{
+    auto it = std::find(_children.begin(), _children.end(), child);
+    if (it == _children.end())
+        return -1;
+    return std::distance(_children.begin(), it);
+}
+
+size_t game_object::get_child_count() const { return _children.size(); }
+
 void game_object::visit_components(
     std::function<bool(component&)> visitor) const
 {

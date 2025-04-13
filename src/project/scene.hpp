@@ -19,10 +19,19 @@ public:
     void visit_root_objects(
         std::function<void(const std::shared_ptr<game_object>&)> visitor) const;
 
+    size_t get_root_object_count() const;
+    std::shared_ptr<game_object> get_root_object(size_t index) const;
+    std::shared_ptr<game_object>
+    get_root_object_by_name(std::string_view name) const;
+
+    size_t get_root_object_index(std::shared_ptr<game_object> object) const;
+
     void save(std::string_view path);
     void unload();
 
     event<bool()> save_request;
+    event<void(size_t, std::shared_ptr<game_object>)> root_object_added;
+    static event<void()> active_scene_changed;
 
 private:
     scene();

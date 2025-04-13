@@ -3,11 +3,14 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QStatusBar>
+#include <QTreeView>
 
 #include <application/qt/widgets/inspector_widget.hpp>
+#include <application/qt/widgets/scene_model.hpp>
 #include <common/logging.hpp>
 #include <project/components/transform.hpp>
 #include <project/game_object.hpp>
+#include <project/scene.hpp>
 #include <qspdlog/qspdlog.hpp>
 
 #include "editor_main_window.hpp"
@@ -68,6 +71,15 @@ void EditorMainWindow::initialize()
     inspectorDock->setWidget(inspector);
     addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
     inspectorDock->setAttribute(Qt::WA_DeleteOnClose);
+
+    auto sceneView = new QTreeView();
+    QDockWidget* sceneDock = new QDockWidget("Scene", this);
+    sceneDock->setWidget(sceneView);
+    addDockWidget(Qt::LeftDockWidgetArea, sceneDock);
+    sceneDock->setAttribute(Qt::WA_DeleteOnClose);
+
+    auto sceneModel = new ui::SceneModel(scene::get_active_scene(), this);
+    sceneView->setModel(sceneModel);
 
     game_context::on_object_selected += [ inspector ](auto obj)
     {
