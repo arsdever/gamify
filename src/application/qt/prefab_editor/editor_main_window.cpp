@@ -75,7 +75,7 @@ void EditorMainWindow::initialize()
     addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
     inspectorDock->setAttribute(Qt::WA_DeleteOnClose);
 
-    auto sceneView = new QTreeView();
+    auto sceneView = new ui::SceneViewWidget();
     QDockWidget* sceneDock = new QDockWidget("Scene", this);
     sceneDock->setWidget(sceneView);
     addDockWidget(Qt::LeftDockWidgetArea, sceneDock);

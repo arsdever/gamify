@@ -15,6 +15,8 @@ add_library(
 	inspector_widget.cpp
 	scene_model.hpp
 	scene_model.cpp
+	scene_view_widget.hpp
+	scene_view_widget.cpp
 	spinbox.hpp
 	spinbox.cpp
 	vec3_widget.hpp
