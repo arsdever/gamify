@@ -28,7 +28,8 @@ SceneModel::~SceneModel() = default;
 
 void SceneModel::setScene(std::shared_ptr<scene> s)
 {
-    if (_p->_scene = s; s == nullptr)
+    _p->_scene = s;
+    if (s == nullptr)
     {
         return;
     }
@@ -39,6 +40,29 @@ void SceneModel::setScene(std::shared_ptr<scene> s)
         this->beginInsertRows(QModelIndex(), index, index);
         this->endInsertRows();
     };
+}
+
+QModelIndex SceneModel::indexOf(std::shared_ptr<game_object> object)
+{
+    // Go up by the hierarchy and find the root object
+    std::shared_ptr<game_object> root_object = object;
+    size_t hierarchy_depth = 0;
+    while (root_object->get_parent() != nullptr)
+    {
+        root_object = root_object->get_parent();
+        ++hierarchy_depth;
+    }
+
+    if (hierarchy_depth == 0)
+    {
+        // The object is a root object
+        auto idx = _p->_scene.lock()->get_root_object_index(object);
+        return createIndex(idx, 0);
+    }
+
+    auto idxInParent = object->get_parent()->get_child_index(object);
+
+    return createIndex(idxInParent, hierarchy_depth);
 }
 
 QModelIndex

@@ -7,7 +7,6 @@
 #include <common/logging.hpp>
 #include <project/component_interface/component.hpp>
 #include <project/game_object.hpp>
-#include <qcombobox.h>
 
 #include "inspector_widget.hpp"
 
@@ -21,6 +20,7 @@ logger log() { return get_logger("inspector_widget"); }
 struct InspectorWidget::InspectorWidgetPrivate
 {
     std::shared_ptr<game_object> _gameObject;
+    QWidget* _inspectorContent { nullptr };
 };
 
 InspectorWidget::InspectorWidget(QWidget* parent)
@@ -29,11 +29,6 @@ InspectorWidget::InspectorWidget(QWidget* parent)
 {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setWidgetResizable(true);
-
-    QWidget* widget = new QWidget(this);
-    auto layout = new QVBoxLayout();
-    widget->setLayout(layout);
-    setWidget(widget);
 }
 
 InspectorWidget::~InspectorWidget() = default;
@@ -54,7 +49,10 @@ void InspectorWidget::resetInspector()
         return;
     }
 
-    auto layout = static_cast<QVBoxLayout*>(widget()->layout());
+    QWidget* widget = new QWidget(this);
+    setWidget(widget);
+    auto layout = new QVBoxLayout;
+    widget->setLayout(layout);
 
     _p->_gameObject->visit_components([ mainLayout = layout ](auto& component)
     {

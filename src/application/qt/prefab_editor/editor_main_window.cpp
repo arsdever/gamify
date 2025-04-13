@@ -7,6 +7,7 @@
 
 #include <application/qt/widgets/inspector_widget.hpp>
 #include <application/qt/widgets/scene_model.hpp>
+#include <application/qt/widgets/scene_view_widget.hpp>
 #include <common/logging.hpp>
 #include <project/components/transform.hpp>
 #include <project/game_object.hpp>
@@ -65,6 +66,8 @@ void EditorMainWindow::initialize()
 
     auto sink = loggerWidget->sink();
     spdlog::default_logger()->sinks().push_back(sink);
+    loggerWidget->setAutoScrollPolicy(
+        AutoScrollPolicy::AutoScrollPolicyEnabledIfBottom);
 
     auto inspector = new ui::InspectorWidget();
     QDockWidget* inspectorDock = new QDockWidget("Inspector", this);
@@ -81,9 +84,26 @@ void EditorMainWindow::initialize()
     auto sceneModel = new ui::SceneModel(scene::get_active_scene(), this);
     sceneView->setModel(sceneModel);
 
-    game_context::on_object_selected += [ inspector ](auto obj)
+    sceneView->connect(sceneView,
+                       &QAbstractItemView::clicked,
+                       [](const QModelIndex& index)
+    {
+        auto activated_game_object =
+            index.data(Qt::UserRole).value<std::shared_ptr<game_object>>();
+        std::vector<std::shared_ptr<game_object>> objects {
+            activated_game_object
+        };
+        game_context::set_object_selection(objects);
+    });
+
+    game_context::on_object_selected +=
+        [ sceneModel, sceneView, inspector ](auto obj)
     {
         auto gobj = std::static_pointer_cast<game_object>(obj);
+        inspector->setInspectingObject(gobj);
+        log()->info("Selected object: {}", gobj->get_name());
+        auto idx = sceneModel->indexOf(gobj);
+        sceneView->setCurrentIndex(idx);
         inspector->setInspectingObject(gobj);
     };
 }

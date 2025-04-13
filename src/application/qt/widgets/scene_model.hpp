@@ -14,6 +14,7 @@ public:
     ~SceneModel();
 
     void setScene(std::shared_ptr<scene> scene);
+    QModelIndex indexOf(std::shared_ptr<game_object> object);
 
     QModelIndex index(int row,
                       int column,

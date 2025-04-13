@@ -78,8 +78,8 @@ void game_context::create_empty_game_object()
                 new_object->get_name(),
                 new_object->id().id);
     new_object->init();
-    on_object_selected(new_object);
     scene::get_active_scene()->add_root_object(new_object);
+    on_object_selected(new_object);
 }
 
 void game_context::create_camera()
@@ -96,8 +96,8 @@ void game_context::create_camera()
     obj->add("flying_camera");
     obj->add("camera_input");
     obj->init();
-    on_object_selected(obj);
     scene::get_active_scene()->add_root_object(obj);
+    on_object_selected(obj);
 }
 
 void game_context::create_cube()
@@ -114,8 +114,14 @@ void game_context::create_cube()
         assets::asset_manager::get<graphics::material>(
             "standard.standard.mat"));
     obj->init();
-    on_object_selected(obj);
     scene::get_active_scene()->add_root_object(obj);
+    on_object_selected(obj);
+}
+
+void game_context::set_object_selection(
+    std::vector<std::shared_ptr<game_object>> objects)
+{
+    on_object_selected(objects[ 0 ]);
 }
 
 event<void(std::shared_ptr<object>)> game_context::on_object_selected;
