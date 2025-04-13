@@ -13,7 +13,6 @@
 #include "editor_main_window.hpp"
 
 #include "game_context.hpp"
-#include "transform_inspector.hpp"
 
 inline logger log() { return get_logger("editor"); }
 
