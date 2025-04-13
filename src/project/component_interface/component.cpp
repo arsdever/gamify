@@ -41,15 +41,15 @@ void component::set_enabled(bool active) { _is_enabled = active; }
 
 bool component::is_enabled() const { return _is_enabled; }
 
-void component::set_property_value(std::string_view name,
+bool component::set_property_value(std::string_view name,
                                    trivial_types::variant_t value)
 {
     if (name == "is_enabled")
     {
         set_enabled(std::get<bool>(value));
-        return;
+        return true;
     }
-    return;
+    return false;
 }
 
 void component::for_each_property(const property_visitor_type& visitor) const

@@ -46,7 +46,7 @@ public:
     void move(glm::dvec3 offset);
     void rotate(const glm::dvec3& axis, double angle);
 
-    void set_property_value(std::string_view name,
+    bool set_property_value(std::string_view name,
                             trivial_types::variant_t value) override;
     void for_each_property(const property_visitor_type& visitor) const override;
 

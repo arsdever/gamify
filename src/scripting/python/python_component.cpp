@@ -44,24 +44,34 @@ void assign_variant(std::variant<T...>&& v,
      ...);
 }
 
-void python_component::set_property_value(std::string_view name,
+bool python_component::set_property_value(std::string_view name,
                                           trivial_types::variant_t value)
 {
     try
     {
+        if (!_instance)
+        {
+            return base::set_property_value(name, value);
+        }
+
+        if (!hasattr(_instance, name.data()))
+        {
+            return base::set_property_value(name, value);
+        }
+
         assign_variant(std::move(value),
                        _instance,
                        name.data(),
                        std::make_index_sequence<
                            std::variant_size_v<trivial_types::variant_t>> {});
-        return;
+        return true;
     }
     catch (std::exception& e)
     {
         log()->error("{}", e.what());
     }
 
-    component::set_property_value(name, value);
+    return base::set_property_value(name, value);
 }
 
 void python_component::for_each_property(
@@ -138,18 +148,19 @@ void python_component_trampoline::on_deinit()
     }
 }
 
-void python_component_trampoline::set_property_value(
+bool python_component_trampoline::set_property_value(
     std::string_view name, trivial_types::variant_t value)
 {
     try
     {
         PYBIND11_OVERRIDE(
-            void, python_component, set_property_value, name, value);
+            bool, python_component, set_property_value, name, value);
     }
     catch (std::exception& e)
     {
         log()->error("{}", e.what());
     }
+    return false;
 }
 
 void python_component_trampoline::for_each_property(

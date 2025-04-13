@@ -36,7 +36,7 @@ public:
     void set_enabled(bool active = true);
     bool is_enabled() const;
 
-    virtual void set_property_value(std::string_view name,
+    virtual bool set_property_value(std::string_view name,
                                     trivial_types::variant_t value);
 
     virtual void for_each_property(const property_visitor_type& visitor) const;

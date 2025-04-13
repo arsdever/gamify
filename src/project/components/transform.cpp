@@ -128,13 +128,13 @@ void transform::rotate(const glm::dvec3& axis, double angle)
     set_rotation(glm::angleAxis(angle, axis) * _rotation);
 }
 
-void transform::set_property_value(std::string_view name,
+bool transform::set_property_value(std::string_view name,
                                    trivial_types::variant_t value)
 {
     if (name == "position")
     {
         set_position(std::get<glm::dvec3>(value));
-        return;
+        return true;
     }
     if (name == "rotation")
     {
@@ -142,14 +142,14 @@ void transform::set_property_value(std::string_view name,
             set_rotation(std::get<glm::dvec3>(value));
         else if (std::holds_alternative<glm::dquat>(value))
             set_rotation(std::get<glm::dquat>(value));
-        return;
+        return true;
     }
     if (name == "scale")
     {
         set_scale(std::get<glm::dvec3>(value));
-        return;
+        return true;
     }
-    base::set_property_value(name, value);
+    return base::set_property_value(name, value);
 }
 
 void transform::for_each_property(const property_visitor_type& visitor) const

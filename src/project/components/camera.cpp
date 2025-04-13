@@ -292,38 +292,38 @@ void camera::setup_lights()
     _lights_buffer->bind(0);
 }
 
-void camera::set_property_value(std::string_view name,
+bool camera::set_property_value(std::string_view name,
                                 trivial_types::variant_t value)
 {
     if (name == "render_size")
     {
         auto size = std::get<glm::uvec2>(value);
         set_render_size(size.x, size.y);
-        return;
+        return true;
     }
     else if (name == "field_of_view")
     {
         set_fov(std::get<double>(value));
-        return;
+        return true;
     }
     else if (name == "is_orthogonal")
     {
         set_orthogonal(std::get<bool>(value));
-        return;
+        return true;
     }
     else if (name == "background_color")
     {
         set_background_color(std::get<glm::dvec4>(value));
-        return;
+        return true;
     }
     else if (name == "active_camera")
     {
         if (std::get<bool>(value))
             set_active();
-        return;
+        return true;
     }
 
-    base::set_property_value(name, value);
+    return base::set_property_value(name, value);
 }
 
 void camera::for_each_property(const property_visitor_type& visitor) const
