@@ -46,10 +46,6 @@ public:
     void move(glm::dvec3 offset);
     void rotate(const glm::dvec3& axis, double angle);
 
-    bool set_property_value(std::string_view name,
-                            trivial_types::variant_t value) override;
-    void for_each_property(const property_visitor_type& visitor) const override;
-
     // static size_t register_component();
     // TODO: this is a temporary solution for resolving the type_name
     static constexpr std::string_view type_name = "transform";

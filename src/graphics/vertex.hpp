@@ -101,8 +101,8 @@ struct vertex
         {
             glVertexAttribPointer(i,
                                   attribute_component_counts[ i ],
-                                  GL_FLOAT,
-                                  GL_FALSE,
+                                  0x1406,
+                                  0,
                                   size,
                                   (void*)attribute_offset);
             attribute_offset += attribute_sizes[ i ];
