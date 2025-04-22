@@ -32,16 +32,3 @@ using trivial_types = type_list<bool,
                                 glm::uvec4,
                                 glm::quat,
                                 glm::dquat>;
-
-template <typename T, typename C>
-size_t find_index_in_variant(C&& caster, T&& object)
-{
-    for
-        constexpr(auto i = 0; i < std::variant_size_v<std::decay_t<T>>; ++i)
-        {
-            if (C(std::forward<T>(object))))
-        {
-            return i;
-        }
-        }
-}

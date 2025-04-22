@@ -14,6 +14,21 @@ namespace components
 transform::transform(game_object& obj)
     : component(type_name, obj)
 {
+    _properties.emplace("position",
+                        property { "position",
+                                   "Position",
+                                   "Position of the object in world space",
+                                   glm::dvec3 { 0, 0, 0 } });
+    _properties.emplace("rotation",
+                        property { "rotation",
+                                   "Rotation",
+                                   "Rotation of the object in world space (euler angles)",
+                                   glm::dvec3 { 0, 0, 0 } });
+    _properties.emplace("scale",
+                        property { "scale",
+                                   "Scale",
+                                   "Scale of the object in world space",
+                                   glm::dvec3 { 1, 1, 1 } });
 }
 
 void transform::set_position(const glm::dvec3& position)
@@ -126,38 +141,6 @@ void transform::move(glm::dvec3 offset) { set_position(_position + offset); }
 void transform::rotate(const glm::dvec3& axis, double angle)
 {
     set_rotation(glm::angleAxis(angle, axis) * _rotation);
-}
-
-bool transform::set_property_value(std::string_view name,
-                                   trivial_types::variant_t value)
-{
-    if (name == "position")
-    {
-        set_position(std::get<glm::dvec3>(value));
-        return true;
-    }
-    if (name == "rotation")
-    {
-        if (std::holds_alternative<glm::dvec3>(value))
-            set_rotation(std::get<glm::dvec3>(value));
-        else if (std::holds_alternative<glm::dquat>(value))
-            set_rotation(std::get<glm::dquat>(value));
-        return true;
-    }
-    if (name == "scale")
-    {
-        set_scale(std::get<glm::dvec3>(value));
-        return true;
-    }
-    return base::set_property_value(name, value);
-}
-
-void transform::for_each_property(const property_visitor_type& visitor) const
-{
-    base::for_each_property(visitor);
-    visitor("position", "Position", _position);
-    visitor("rotation", "Rotation", glm::eulerAngles(_rotation));
-    visitor("scale", "Scale", _scale);
 }
 
 template <>

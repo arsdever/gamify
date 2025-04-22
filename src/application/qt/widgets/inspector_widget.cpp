@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QStackedWidget>
 #include <QVBoxLayout>
+#include <tuple>
 
 #include <common/logging.hpp>
 #include <project/component_interface/component.hpp>
@@ -11,6 +12,7 @@
 #include "inspector_widget.hpp"
 
 #include "collapsible_widget.hpp"
+#include "project/property.hpp"
 #include "vec3_widget.hpp"
 
 namespace ui
@@ -42,6 +44,58 @@ void InspectorWidget::setInspectingObject(std::shared_ptr<game_object> t)
     }
 }
 
+template <typename T>
+struct TypedUiBuildHandler
+{
+    template <typename... Args>
+    static bool try_handle(class property& prop, Args&&... args)
+    {
+        if (prop.get_type() != typeid(T).name())
+        {
+            return false;
+        }
+
+        handle(prop, std::forward<Args>(args)...);
+        return true;
+    }
+
+    template <typename... Args>
+    static void handle(Args&&... args);
+};
+
+template <>
+template <>
+void TypedUiBuildHandler<bool>::handle<class property&, QLayout*>(
+    class property& prop, QLayout*&& layout)
+{
+    QCheckBox* checkBox =
+        new QCheckBox(QString::fromStdString(prop.get_display_name()));
+    layout->addWidget(checkBox);
+    checkBox->setChecked(prop.get_value<bool>() == true);
+    checkBox->connect(checkBox,
+                      &QCheckBox::stateChanged,
+                      [ &prop ](auto state)
+    { prop.set_value(state == Qt::Checked); });
+}
+
+template <>
+template <>
+void TypedUiBuildHandler<glm::dvec3>::handle<class property&, QLayout*>(
+    class property& prop, QLayout*&& layout)
+{
+    auto vec3 = prop.get_value<glm::dvec3>();
+    auto vec3Widget = new ui::Vec3Widget();
+    vec3Widget->setLabel(QString::fromLatin1(prop.get_display_name()));
+    vec3Widget->setValue(vec3);
+    layout->addWidget(vec3Widget);
+    vec3Widget->connect(vec3Widget,
+                        &ui::Vec3Widget::valueChanged,
+                        [ &prop ](auto value)
+    { prop.set_value(glm::dvec3(value)); });
+}
+
+using SupportedUiTypes = std::tuple<bool, glm::dvec3>;
+
 void InspectorWidget::resetInspector()
 {
     if (_p->_gameObject == nullptr)
@@ -64,48 +118,27 @@ void InspectorWidget::resetInspector()
         auto layout = new QVBoxLayout();
 
         component.for_each_property(
-            [ layout, &component ](std::string_view prop_name,
-                                   std::string_view prop_display_name,
-                                   const auto& prop_value) -> bool
+            [ layout, &component ](class property& prop) -> bool
         {
-            std::string prop_name_str(prop_name);
-            log()->debug("Property: {}({})", prop_display_name, prop_name_str);
-            switch (prop_value.index())
+            log()->debug("Property: {}({}) of type {}",
+                         prop.get_display_name(),
+                         prop.get_name(),
+                         prop.get_type());
+
+            constexpr size_t supported_types_count =
+                std::tuple_size_v<SupportedUiTypes>;
+
+            bool handled = false;
+
+            [ & ]<std::size_t... I>(std::index_sequence<I...>)
             {
-            case variant_index_v<trivial_types::variant_t, bool>:
-            {
-                QCheckBox* checkBox = new QCheckBox(QString::fromLatin1(
-                    prop_display_name.data(), prop_display_name.size()));
-                layout->addWidget(checkBox);
-                checkBox->setChecked(std::get<bool>(prop_value) == true);
-                checkBox->connect(checkBox,
-                                  &QCheckBox::stateChanged,
-                                  [ prop_name_str, &component ](auto state)
-                {
-                    component.set_property_value(prop_name_str,
-                                                 state == Qt::Checked);
-                });
-                break;
-            }
-            case variant_index_v<trivial_types::variant_t, glm::dvec3>:
-            {
-                auto vec3 = std::get<glm::dvec3>(prop_value);
-                auto vec3Widget = new ui::Vec3Widget();
-                vec3Widget->setLabel(QString::fromLatin1(
-                    prop_display_name.data(), prop_display_name.size()));
-                vec3Widget->setValue(vec3);
-                layout->addWidget(vec3Widget);
-                vec3Widget->connect(vec3Widget,
-                                    &ui::Vec3Widget::valueChanged,
-                                    [ prop_name_str, &component ](auto value)
-                {
-                    component.set_property_value(prop_name_str,
-                                                 glm::dvec3(value));
-                });
-                break;
-            }
-            default: break;
-            }
+                ((handled = handled ||
+                            TypedUiBuildHandler<
+                                std::tuple_element_t<I, SupportedUiTypes>>::
+                                try_handle(prop, qobject_cast<QLayout*>(layout))),
+                 ...);
+            }(std::make_index_sequence<supported_types_count> {});
+
             return true;
         });
 
