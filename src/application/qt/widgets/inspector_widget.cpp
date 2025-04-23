@@ -76,6 +76,16 @@ void TypedUiBuildHandler<bool>::handle<class property&, QLayout*>(
                       &QCheckBox::stateChanged,
                       [ &prop ](auto state)
     { prop.set_value(state == Qt::Checked); });
+    auto connection = prop.value_changed += [ &prop, checkBox ]()
+    {
+        auto b = checkBox->blockSignals(true);
+        checkBox->setChecked(prop.get_value<bool>());
+        checkBox->blockSignals(b);
+    };
+    checkBox->connect(checkBox,
+                      &QWidget::destroyed,
+                      [ c = std::move(connection) ](auto) mutable
+    { c.drop(); });
 }
 
 template <>
@@ -83,13 +93,25 @@ template <>
 void TypedUiBuildHandler<glm::dvec3>::handle<class property&, QLayout*>(
     class property& prop, QLayout*&& layout)
 {
-    auto vec3 = prop.get_value<glm::dvec3>();
+    auto value = prop.get_value<glm::dvec3>();
     auto vec3Widget = new ui::Vec3Widget();
     vec3Widget->setLabel(QString::fromLatin1(prop.get_display_name()));
-    vec3Widget->setValue(vec3);
+    vec3Widget->setValue(value);
     layout->addWidget(vec3Widget);
     vec3Widget->connect(vec3Widget,
                         &ui::Vec3Widget::valueChanged,
+                        [ &prop ](auto value) { prop.set_value(value); });
+    auto connection = prop.value_changed += [ &prop, vec3Widget ]()
+    {
+        auto b = vec3Widget->blockSignals(true);
+        vec3Widget->setValue(prop.get_value<glm::dvec3>());
+        vec3Widget->blockSignals(b);
+    };
+    vec3Widget->connect(vec3Widget,
+                        &QWidget::destroyed,
+                        [ c = std::move(connection) ](auto) mutable
+    { c.drop(); });
+}
                         [ &prop ](auto value)
     { prop.set_value(glm::dvec3(value)); });
 }
@@ -132,10 +154,11 @@ void InspectorWidget::resetInspector()
 
             [ & ]<std::size_t... I>(std::index_sequence<I...>)
             {
-                ((handled = handled ||
-                            TypedUiBuildHandler<
-                                std::tuple_element_t<I, SupportedUiTypes>>::
-                                try_handle(prop, qobject_cast<QLayout*>(layout))),
+                ((handled =
+                      handled ||
+                      TypedUiBuildHandler<
+                          std::tuple_element_t<I, SupportedUiTypes>>::
+                          try_handle(prop, qobject_cast<QLayout*>(layout))),
                  ...);
             }(std::make_index_sequence<supported_types_count> {});
 

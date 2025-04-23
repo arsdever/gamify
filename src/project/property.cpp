@@ -115,16 +115,16 @@ void property::set_display_name(std::string_view display_name)
 
 std::string property::get_display_name() const { return _display_name; }
 
-void property::set_default_value(const std::any& value)
+void property::set_default_value( std::any value)
 {
-    _default_value = value;
+    _default_value = std::move(value);
 }
 
 std::any property::get_default_value() const { return _default_value; }
 
-void property::set_value(const std::any& value)
+void property::set_value(std::any value)
 {
-    _value = value;
+    _value = std::move(value);
     value_changed();
 }
 

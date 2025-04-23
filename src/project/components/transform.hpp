@@ -66,10 +66,15 @@ private:
     bool is_dirty() const;
     bool recalculate_matrix() const;
 
+    property& param_position();
+    property& param_rotation();
+    property& param_scale();
+
+    const property& param_position() const;
+    const property& param_rotation() const;
+    const property& param_scale() const;
+
 private:
-    glm::dvec3 _position { 0 };
-    glm::dquat _rotation { glm::identity<glm::dquat>() };
-    glm::dvec3 _scale { 1 };
     mutable glm::dvec3 _world_position { 0 };
     mutable glm::dquat _world_rotation { glm::identity<glm::dquat>() };
     mutable glm::dvec3 _world_scale { 1 };
