@@ -13,6 +13,7 @@
 
 #include "collapsible_widget.hpp"
 #include "project/property.hpp"
+#include "spinbox.hpp"
 #include "vec3_widget.hpp"
 
 namespace ui
@@ -112,11 +113,33 @@ void TypedUiBuildHandler<glm::dvec3>::handle<class property&, QLayout*>(
                         [ c = std::move(connection) ](auto) mutable
     { c.drop(); });
 }
-                        [ &prop ](auto value)
-    { prop.set_value(glm::dvec3(value)); });
+
+template <>
+template <>
+void TypedUiBuildHandler<double>::handle<class property&, QLayout*>(
+    class property& prop, QLayout*&& layout)
+{
+    auto value = prop.get_value<double>();
+    auto spin = new ui::SpinBox();
+    spin->setLabel(QString::fromLatin1(prop.get_display_name()));
+    spin->setValue(value);
+    layout->addWidget(spin);
+    spin->connect(spin,
+                  &ui::SpinBox::valueChanged,
+                  [ &prop ](auto value) { prop.set_value(value); });
+    auto connection = prop.value_changed += [ &prop, spin ]()
+    {
+        auto b = spin->blockSignals(true);
+        spin->setValue(prop.get_value<double>());
+        spin->blockSignals(b);
+    };
+    spin->connect(spin,
+                        &QWidget::destroyed,
+                        [ c = std::move(connection) ](auto) mutable
+    { c.drop(); });
 }
 
-using SupportedUiTypes = std::tuple<bool, glm::dvec3>;
+using SupportedUiTypes = std::tuple<bool, glm::dvec3, double>;
 
 void InspectorWidget::resetInspector()
 {
