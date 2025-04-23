@@ -19,6 +19,7 @@
 #include "project/components/mesh_renderer.hpp"
 #include "project/components/transform.hpp"
 #include "project/project_manager.hpp"
+#include "project/property.hpp"
 #include "project/scene.hpp"
 #include "project/serialization_utilities.hpp"
 #include "project/serializer.hpp"
@@ -32,24 +33,18 @@ camera::camera(game_object& obj)
     : component("camera", obj)
 {
     _cameras.push_back(this);
-    _properties.emplace("field_of_view",
-                        property { "field_of_view",
-                                   "Field of View",
-                                   "float",
-                                   "Field of view in degrees" });
-    _properties.emplace("is_orthogonal",
-                        property { "is_orthogonal",
-                                   "Is Orthogonal",
-                                   "bool",
-                                   "Orthographic projection flag" });
-    _properties.emplace("background_color",
-                        property { "background_color",
-                                   "Background Color",
-                                   "vec4",
-                                   "Background color" });
-    _properties.emplace(
-        "is_main",
-        property { "is_main", "Is Main Camera", "bool", "Main camera flag" });
+    add_property({ "is_main", "Is Main Camera", "bool", "Main camera flag" });
+    auto& fov = add_property(
+        { "field_of_view", "Field of View", "Field of view in degrees", .6 });
+    fov.value_changed += [ this ]() { _projection_matrix_dirty = true; };
+    add_property({ "is_orthogonal",
+                   "Is Orthogonal",
+                   "bool",
+                   "Orthographic projection flag" });
+    add_property({ "background_color",
+                   "Background Color",
+                   "dvec4",
+                   "Background color" });
 }
 
 camera& camera::operator=(camera&& obj) = default;
@@ -58,11 +53,11 @@ camera::~camera() { }
 
 void camera::set_fov(double fov)
 {
-    _field_of_view = fov;
+    param_fov() = fov;
     _projection_matrix_dirty = true;
 }
 
-double camera::get_fov() const { return _field_of_view; }
+double camera::get_fov() const { return param_fov().get_value<double>(); }
 
 void camera::set_orthogonal(bool ortho_flag)
 {
@@ -330,7 +325,14 @@ glm::mat4 camera::calculate_projection_matrix() const
                           10000.0);
     }
 
-    return glm::perspective(_field_of_view, size.x / size.y, 0.1, 10000.0);
+    return glm::perspective(get_fov(), size.x / size.y, 0.1, 10000.0);
+}
+
+property& camera::param_fov() { return get_property("field_of_view"); }
+
+const property& camera::param_fov() const
+{
+    return get_property("field_of_view");
 }
 
 camera* camera::_active_camera { nullptr };

@@ -85,14 +85,14 @@ public:
     property& operator=(const property&);
     property& operator=(property&&);
 
-    virtual ~property();
+    ~property();
 
     std::string_view get_name() const;
 
     void set_display_name(std::string_view display_name);
     std::string get_display_name() const;
 
-    void set_default_value(const std::any& value);
+    void set_default_value(std::any value);
     std::any get_default_value() const;
     template <typename T>
     T get_default_value() const
@@ -100,15 +100,29 @@ public:
         return std::any_cast<T>(get_default_value());
     }
 
+    // Either the type is already moved, or we just get the copy and later move
+    // into the storage
+    void set_value(std::any value);
     template <typename T>
     void set_value(T&& value)
     {
-        _value = std::forward<T>(value);
-        value_changed();
+        set_value(std::any(std::forward<T>(value)));
     }
 
-    virtual void set_value(const std::any& value);
-    virtual std::any get_value() const;
+    inline property& operator=(std::any value)
+    {
+        set_value(std::move(value));
+        return *this;
+    }
+
+    template <typename T>
+    property& operator=(T&& value)
+    {
+        set_value(std::forward<T>(value));
+        return *this;
+    }
+
+    std::any get_value() const;
 
     template <typename T>
     T get_value() const

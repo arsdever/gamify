@@ -53,16 +53,22 @@ public:
 protected:
     component(std::string_view name, game_object& obj);
 
-    property* get_property(std::string_view name);
+    property& add_property(property&& prop);
+    const property& get_property(std::string_view name) const;
+    const property* try_get_property(std::string_view name) const;
+    property& get_property(std::string_view name);
+    property* try_get_property(std::string_view name);
 
     virtual void on_init();
     virtual void on_update();
     virtual void on_deinit();
 
     std::reference_wrapper<game_object> _game_object;
-    std::unordered_map<std::string, property> _properties;
 
 private:
     bool _is_enabled { true };
     metatype _type_info;
+    std::vector<std::unique_ptr<property>> _properties;
+    // For faster lookup
+    std::unordered_map<std::string, property&> _properties_lt;
 };

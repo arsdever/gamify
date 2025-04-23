@@ -65,11 +65,13 @@ private:
     void render_on_private_texture() const;
     void setup_lights();
 
+	property& param_fov();
+	const property& param_fov() const;
+
     glm::mat4 calculate_projection_matrix() const;
 
 private:
     glm::uvec2 _render_size { 1u };
-    double _field_of_view { .6 };
     bool _is_orthogonal { false };
     std::weak_ptr<graphics::texture> _user_render_texture {};
     glm::dvec4 _background_color { 0.0 };
