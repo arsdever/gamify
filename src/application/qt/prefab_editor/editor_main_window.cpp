@@ -41,7 +41,10 @@ void EditorMainWindow::initialize()
 
     QMenu* newMenu = fileMenu->addMenu("New");
     QAction* newGameObject = newMenu->addAction("Empty Game Object");
+    newMenu->addSeparator();
     QAction* newCamera = newMenu->addAction("Camera");
+    QAction* newLight = newMenu->addAction("Light");
+    newMenu->addSeparator();
     QAction* newCube = newMenu->addAction("Cube");
 
     QAction* exitAction = fileMenu->addAction("Exit");
@@ -52,6 +55,8 @@ void EditorMainWindow::initialize()
     connect(
         newCamera, &QAction::triggered, [] { game_context::create_camera(); });
     connect(newCube, &QAction::triggered, [] { game_context::create_cube(); });
+    connect(
+        newLight, &QAction::triggered, [] { game_context::create_light(); });
     connect(exitAction, &QAction::triggered, this, &EditorMainWindow::close);
 
     setMenuBar(menuBar);

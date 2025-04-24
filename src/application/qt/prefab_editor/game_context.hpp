@@ -18,6 +18,7 @@ public:
     static void create_empty_game_object();
     static void create_camera();
     static void create_cube();
+    static void create_light();
 
     static void
     set_object_selection(std::vector<std::shared_ptr<game_object>> objects);

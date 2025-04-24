@@ -122,7 +122,15 @@ public:
         return *this;
     }
 
-    std::any get_value() const;
+    std::any& get_value();
+
+    const std::any& get_value() const;
+
+    template <typename T>
+    T get_value()
+    {
+        return std::any_cast<T>(get_value());
+    }
 
     template <typename T>
     T get_value() const

@@ -17,24 +17,29 @@ namespace components
 mesh_renderer::mesh_renderer(game_object& obj)
     : component(type_name, obj)
 {
+    add_property({ "materials",
+                   "Materials",
+                   "The list of materials for each submesh",
+                   std::shared_ptr<graphics::material> {} });
 }
 
 std::vector<std::shared_ptr<graphics::material>>
 mesh_renderer::get_materials() const
 {
-    return _materials;
+    return { get_property("materials")
+                 .get_value<const std::shared_ptr<graphics::material>&>() };
 }
 
 void mesh_renderer::set_materials(
     std::vector<std::shared_ptr<graphics::material>> m)
 {
-    _materials = std::move(m);
+    get_materials() = std::move(m);
 }
 
 std::shared_ptr<graphics::material>
 mesh_renderer::get_material(size_t index) const
 {
-    return _materials[ std::min(index, _materials.size() - 1) ];
+    return get_materials()[ std::min(index, get_materials().size() - 1) ];
 }
 
 void mesh_renderer::add_material(std::shared_ptr<graphics::material> m)
@@ -43,25 +48,28 @@ void mesh_renderer::add_material(std::shared_ptr<graphics::material> m)
     {
         log()->warn("{}: Adding null material to mesh renderer", get_name());
     }
-    _materials.push_back(m);
+    // get_materials().push_back(m);
+    get_property("materials") = m;
 }
 
 void mesh_renderer::set_material(size_t index,
                                  std::shared_ptr<graphics::material> m)
 {
-    if (index >= _materials.size())
-    {
-        _materials.resize(index + 1);
-    }
+    // if (index >= get_materials().size())
+    // {
+    //     get_materials().resize(index + 1);
+    // }
 
-    _materials[ index ] = m;
+    // get_materials()[ index ] = m;
 
-    if (m == nullptr)
-    {
-        log()->warn("{}: Setting a null material to mesh renderer at index {}",
-                    get_name(),
-                    index);
-    }
+    // if (m == nullptr)
+    // {
+    //     log()->warn("{}: Setting a null material to mesh renderer at index
+    //     {}",
+    //                 get_name(),
+    //                 index);
+    // }
+    get_property("materials") = m;
 }
 
 template <>
