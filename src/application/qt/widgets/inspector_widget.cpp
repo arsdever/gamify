@@ -1,11 +1,13 @@
 #include <QCheckBox>
+#include <QComboBox>
 #include <QFrame>
 #include <QLabel>
 #include <QStackedWidget>
 #include <QVBoxLayout>
-#include <tuple>
 
+#include <assets/asset_manager.hpp>
 #include <common/logging.hpp>
+#include <graphics/graphics_fwd.hpp>
 #include <project/component_interface/component.hpp>
 #include <project/game_object.hpp>
 
@@ -134,12 +136,51 @@ void TypedUiBuildHandler<double>::handle<class property&, QLayout*>(
         spin->blockSignals(b);
     };
     spin->connect(spin,
-                        &QWidget::destroyed,
-                        [ c = std::move(connection) ](auto) mutable
+                  &QWidget::destroyed,
+                  [ c = std::move(connection) ](auto) mutable { c.drop(); });
+}
+
+template <>
+template <>
+void TypedUiBuildHandler<std::shared_ptr<graphics::mesh>>::
+    handle<class property&, QLayout*>(class property& prop, QLayout*&& layout)
+{
+    auto value = prop.get_value<std::shared_ptr<graphics::mesh>>();
+    QComboBox* comboBox = new QComboBox();
+    assets::asset_manager::apply<graphics::mesh>(
+        [ comboBox, &value ](std::string_view name,
+                             std::shared_ptr<assets::asset> ast)
+    {
+        comboBox->addItem(QString::fromLatin1(name), QVariant::fromValue(ast));
+        if (ast->as<graphics::mesh>() == value)
+        {
+            comboBox->setCurrentText(QString::fromLatin1(name));
+        }
+    });
+    layout->addWidget(comboBox);
+    auto connection = prop.value_changed += [ &prop ]()
+    {
+        // TODO: Need to find an asset via the mesh pointer
+    };
+    comboBox->connect(comboBox,
+                      &QComboBox::currentTextChanged,
+                      [ &prop, comboBox ](auto text)
+    {
+        auto asset = comboBox->currentData(Qt::UserRole)
+                         .value<std::shared_ptr<assets::asset>>();
+        if (asset)
+        {
+            prop.set_value(asset->as<graphics::mesh>());
+        }
+    });
+    comboBox->connect(comboBox,
+                      &QWidget::destroyed,
+                      [ c = std::move(connection) ](auto) mutable
     { c.drop(); });
 }
 
-using SupportedUiTypes = std::tuple<bool, glm::dvec3, double>;
+using SupportedUiTypes =
+    std::tuple<bool, glm::dvec3, double, std::shared_ptr<graphics::mesh>>;
 
 void InspectorWidget::resetInspector()
 {

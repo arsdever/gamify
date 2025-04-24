@@ -14,11 +14,21 @@ namespace components
 mesh_filter::mesh_filter(game_object& obj)
     : component(type_name, obj)
 {
+    add_property({ "mesh",
+                   "Mesh",
+                   "Mesh to render",
+                   std::shared_ptr<graphics::mesh> { nullptr } });
 }
 
-std::shared_ptr<graphics::mesh> mesh_filter::get_mesh() const { return _mesh; }
+std::shared_ptr<graphics::mesh> mesh_filter::get_mesh() const
+{
+    return get_property("mesh").get_value<std::shared_ptr<graphics::mesh>>();
+}
 
-void mesh_filter::set_mesh(std::shared_ptr<graphics::mesh> m) { _mesh = m; }
+void mesh_filter::set_mesh(std::shared_ptr<graphics::mesh> m)
+{
+    get_property("mesh").set_value(std::move(m));
+}
 
 template <>
 void mesh_filter::serialize<json_serializer>(json_serializer& s)
