@@ -243,6 +243,11 @@ void camera::render_on_private_texture() const
                     auto materials = renderer->get_materials();
                     for (auto material : materials)
                     {
+                        if (!material)
+                        {
+                            continue;
+                        }
+
                         material->set_property_value(
                             "u_model_matrix",
                             glm::mat4(obj->get_transform().get_matrix()));

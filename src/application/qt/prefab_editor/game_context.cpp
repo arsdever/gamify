@@ -4,6 +4,7 @@
 #include <graphics/graphics_fwd.hpp>
 #include <project/component_interface/component.hpp>
 #include <project/components/camera.hpp>
+#include <project/components/light.hpp>
 #include <project/components/mesh_filter.hpp>
 #include <project/components/mesh_renderer.hpp>
 #include <project/game_object.hpp>
@@ -113,6 +114,20 @@ void game_context::create_cube()
     obj->add<components::mesh_renderer>().add_material(
         assets::asset_manager::get<graphics::material>(
             "standard.standard.mat"));
+    obj->init();
+    scene::get_active_scene()->add_root_object(obj);
+    on_object_selected(obj);
+}
+
+void game_context::create_light()
+{
+    auto obj = game_object::create();
+    obj->set_name("Light");
+
+    log()->info(
+        "New game object {} ({}) was created", obj->get_name(), obj->id().id);
+
+    obj->add<components::light>();
     obj->init();
     scene::get_active_scene()->add_root_object(obj);
     on_object_selected(obj);

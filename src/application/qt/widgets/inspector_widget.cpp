@@ -179,8 +179,51 @@ void TypedUiBuildHandler<std::shared_ptr<graphics::mesh>>::
     { c.drop(); });
 }
 
-using SupportedUiTypes =
-    std::tuple<bool, glm::dvec3, double, std::shared_ptr<graphics::mesh>>;
+template <>
+template <>
+void TypedUiBuildHandler<std::shared_ptr<graphics::material>>::
+    handle<class property&, QLayout*>(class property& prop, QLayout*&& layout)
+{
+    auto value = prop.get_value<std::shared_ptr<graphics::material>>();
+    QComboBox* comboBox = new QComboBox();
+    assets::asset_manager::apply<graphics::material>(
+        [ comboBox, &value ](std::string_view name,
+                             std::shared_ptr<assets::asset> ast)
+    {
+        comboBox->addItem(QString::fromLatin1(name), QVariant::fromValue(ast));
+        if (ast->as<graphics::material>() == value)
+        {
+            comboBox->setCurrentText(QString::fromLatin1(name));
+        }
+    });
+
+    auto connection = prop.value_changed += [ &prop ]()
+    {
+        // TODO: Need to find an asset via the mesh pointer
+    };
+    comboBox->connect(comboBox,
+                      &QComboBox::currentTextChanged,
+                      [ &prop, comboBox ](auto text)
+    {
+        auto asset = comboBox->currentData(Qt::UserRole)
+                         .value<std::shared_ptr<assets::asset>>();
+        if (asset)
+        {
+            prop.set_value({ asset->as<graphics::material>() });
+        }
+    });
+    comboBox->connect(comboBox,
+                      &QWidget::destroyed,
+                      [ c = std::move(connection) ](auto) mutable
+    { c.drop(); });
+    layout->addWidget(comboBox);
+}
+
+using SupportedUiTypes = std::tuple<bool,
+                                    glm::dvec3,
+                                    double,
+                                    std::shared_ptr<graphics::mesh>,
+                                    std::shared_ptr<graphics::material>>;
 
 void InspectorWidget::resetInspector()
 {
