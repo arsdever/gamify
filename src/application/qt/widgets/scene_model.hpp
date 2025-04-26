@@ -8,6 +8,7 @@ namespace ui
 {
 class SceneModel : public QAbstractItemModel
 {
+    Q_OBJECT
 public:
     SceneModel(std::shared_ptr<scene> scene = nullptr,
                QObject* parent = nullptr);
