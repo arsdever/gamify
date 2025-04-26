@@ -11,5 +11,6 @@ public:
     ~EditorMainWindow() override;
 
 private:
-    void initialize();
+    struct impl;
+    std::unique_ptr<impl> _p;
 };
