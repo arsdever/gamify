@@ -1,4 +1,5 @@
 #include <QLayout>
+#include <QWheelEvent>
 #include <QWindow>
 
 #include <core/window.hpp>
@@ -11,6 +12,9 @@ struct ProfilerWidget::impl
     QWidget* _window_widget = nullptr;
     std::shared_ptr<core::window> _window = nullptr;
     std::unique_ptr<profiler_renderer> _profilerRenderer = nullptr;
+
+    glm::dvec2 _zoom { .3f, .0001f };
+    glm::dvec2 _scroll { 0.0f, 0.0f };
 };
 
 ProfilerWidget::ProfilerWidget(QWidget* parent)
@@ -31,9 +35,8 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
         {
             auto wnd = widget->_p->_window;
             auto size = wnd->get_size();
-            auto zoom = glm::vec2(.3f, .0001f);
-            auto scroll = glm::vec2(0.0f, 0.0f);
-            widget->_p->_profilerRenderer->render(size, zoom, scroll);
+            widget->_p->_profilerRenderer->render(
+                size, widget->_p->_zoom, widget->_p->_scroll);
         };
     };
 
@@ -47,3 +50,38 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
 
     return widget;
 }
+
+void ProfilerWidget::wheelEvent(QWheelEvent* event)
+{
+    // Ctrl + Wheel = ZoomY
+    // Ctrl + Shift + Wheel = ZoomX
+    // Wheel = ScrollY
+    // Shift + Wheel = ScrollX
+    if (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier))
+    {
+        _p->_zoom.x *= event->angleDelta().y() / 72.0f;
+    }
+    else if (event->modifiers() & Qt::ControlModifier)
+    {
+        _p->_zoom.y *= event->angleDelta().y() / 72.0f;
+    }
+    else if (event->modifiers() & Qt::ShiftModifier)
+    {
+        _p->_scroll.x += event->angleDelta().x() / 72.0f;
+    }
+    else
+    {
+        _p->_scroll.y += event->angleDelta().y() / 72.0f;
+    }
+    // _p->_scroll *= glm::vec2(event->angleDelta().x(),
+    // event->angleDelta().y()) / 72.0f;
+    event->accept();
+}
+
+glm::dvec2 ProfilerWidget::zoom() const { return _p->_zoom; }
+
+glm::dvec2 ProfilerWidget::scroll() const { return _p->_scroll; }
+
+void ProfilerWidget::setZoom(glm::dvec2 z) { _p->_zoom = std::move(z); }
+
+void ProfilerWidget::setScroll(glm::dvec2 s) { _p->_scroll = std::move(s); }
