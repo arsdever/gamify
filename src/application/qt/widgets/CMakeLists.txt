@@ -13,6 +13,8 @@ add_library(
 	texture_widget.cpp
 	inspector_widget.hpp
 	inspector_widget.cpp
+	profiler_widget.hpp
+	profiler_widget.cpp
 	scene_model.hpp
 	scene_model.cpp
 	scene_view_widget.hpp
