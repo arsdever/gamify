@@ -60,6 +60,9 @@ public:
 
     void* get_native_handle() const;
 
+    static void
+    visit_windows(std::function<void(std::shared_ptr<window>)> visitor);
+
 private:
     void setup_mouse_callbacks();
 
@@ -77,6 +80,7 @@ private:
     std::unique_ptr<window_private_data> _p { nullptr };
 
     static std::shared_ptr<window> _main_window;
+    static std::vector<std::weak_ptr<window>> _windows;
 };
 
 } // namespace core
