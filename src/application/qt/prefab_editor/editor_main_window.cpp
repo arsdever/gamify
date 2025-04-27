@@ -6,6 +6,7 @@
 #include <QTreeView>
 
 #include <application/qt/widgets/inspector_widget.hpp>
+#include <application/qt/widgets/profiler_widget.hpp>
 #include <application/qt/widgets/scene_model.hpp>
 #include <application/qt/widgets/scene_view_widget.hpp>
 #include <common/logging.hpp>
@@ -253,10 +254,10 @@ void EditorMainWindow::impl::setupLoggerWidget()
 void EditorMainWindow::impl::setupProfilerWidget()
 {
     // TODO: Implement profiler widget
-    // auto profilerWidget = new ProfilerWidget(_self);
+    auto profilerWidget = ProfilerWidget::create(_self);
     QDockWidget* profilerDock = new QDockWidget("Profiler", _self);
     _profilerWidget = profilerDock;
-    // profilerDock->setWidget(profilerWidget);
+    profilerDock->setWidget(profilerWidget);
     _self->addDockWidget(Qt::BottomDockWidgetArea, profilerDock);
     profilerDock->setAttribute(Qt::WA_DeleteOnClose, false);
 }
