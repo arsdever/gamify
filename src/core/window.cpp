@@ -146,6 +146,7 @@ void window::init()
 
     configure_input_system();
     on_user_initialize(shared_from_this());
+    _windows.push_back(weak_from_this());
 }
 
 void window::activate() { glfwMakeContextCurrent(_p->_glfw_window_handle); }
@@ -519,6 +520,17 @@ void window::configure_input_system()
     });
 }
 
-std::shared_ptr<window> window::_main_window = nullptr;
+void window::visit_windows(std::function<void(std::shared_ptr<window>)> visitor)
+{
+    for (auto& w : _windows)
+    {
+        if (auto win = w.lock())
+        {
+            visitor(win);
+        }
+    }
+}
 
+std::shared_ptr<window> window::_main_window = nullptr;
+std::vector<std::weak_ptr<window>> window::_windows {};
 } // namespace core
