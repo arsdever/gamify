@@ -151,6 +151,7 @@ void camera::render()
     //                         glm::vec2(_render_size),
     //                         glm::vec2(_render_size),
     //                         surface);
+    _framebuffer->unbind();
 }
 
 glm::mat4 camera::projection_matrix() const { return _projection_matrix; }
