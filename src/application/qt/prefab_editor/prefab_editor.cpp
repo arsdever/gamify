@@ -7,10 +7,12 @@
 #include <prof/profiler.hpp>
 #include <scripting/backend.hpp>
 
+#include "application/qt/widgets/profiler_window.hpp"
 #include "graphics/graphics.hpp"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
+#include <application/qt/widgets/inspector_widget.hpp>
 
 #include "editor_main_window.hpp"
 #include "game_context.hpp"
@@ -52,6 +54,9 @@ int main(int argc, char** argv)
     qt_window->setCentralWidget(gl_widget);
     qt_window->resize(1280, 720);
     qt_window->show();
+
+    ProfilerWindow* profiler_window = new ProfilerWindow(qt_window);
+    profiler_window->show();
 
     int result = 0;
 
