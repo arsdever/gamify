@@ -13,16 +13,20 @@ add_library(
 	texture_widget.cpp
 	inspector_widget.hpp
 	inspector_widget.cpp
+	multi_spinbox.hpp
+	multi_spinbox.cpp
 	profiler_widget.hpp
 	profiler_widget.cpp
+	profiler_window.hpp
+	profiler_window.cpp
 	scene_model.hpp
 	scene_model.cpp
 	scene_view_widget.hpp
 	scene_view_widget.cpp
 	spinbox.hpp
 	spinbox.cpp
-	vec3_widget.hpp
-	vec3_widget.cpp
+	# vec3_widget.hpp
+	# vec3_widget.cpp
 )
 add_library(${PROJECT}::ui::widgets ALIAS ${PROJECT}_ui_widgets)
 
