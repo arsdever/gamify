@@ -5,6 +5,7 @@
 #include "core/core_fwd.hpp"
 
 #include "common/event.hpp"
+#include "common/utils.hpp"
 #include "core/window_events.hpp"
 
 namespace core
@@ -16,7 +17,7 @@ namespace core
  * The window class itself represents a physical window that is open and
  * running.
  */
-class window : public std::enable_shared_from_this<window>
+class window : public enable_shared_from_base<window>
 {
 public:
     window();
