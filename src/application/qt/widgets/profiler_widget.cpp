@@ -3,22 +3,16 @@
 #include <QWindow>
 
 #include <core/window.hpp>
-#include <tools/profiler/profiler_frame_renderer.hpp>
-#include <tools/profiler/profiler_renderer.hpp>
+#include <tools/profiler/profiler.hpp>
 
 #include "application/qt/widgets/profiler_widget.hpp"
 
 #include "prof/profiler.hpp"
 
-
 struct ProfilerWidget::impl
 {
     QWidget* _window_widget = nullptr;
-    std::shared_ptr<core::window> _window = nullptr;
-    std::unique_ptr<profiler_renderer> _profilerRenderer = nullptr;
-
-    glm::dvec2 _zoom { .3f, .0001f };
-    glm::dvec2 _scroll { 0.0f, 0.0f };
+    std::shared_ptr<profiler> _profiler = nullptr;
 
     std::optional<prof::frame> _frame;
 };
@@ -34,26 +28,9 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
 {
     ProfilerWidget* widget = new ProfilerWidget(parent);
 
-    widget->_p->_window = std::make_shared<core::window>();
-    widget->_p->_window->on_user_initialize += [ widget ](auto window)
-    {
-        window->get_events()->render += [ widget ](const core::render_event& e)
-        {
-            auto wnd = widget->_p->_window;
-            auto size = wnd->get_size();
-            if (widget->_p->_frame.has_value())
-            {
-                profiler_frame_renderer {}.render(widget->_p->_frame.value(),
-                                                  size);
-                return;
-            }
-            widget->_p->_profilerRenderer->render(
-                size, widget->_p->_zoom, widget->_p->_scroll);
-        };
-    };
-
-    widget->_p->_window->init();
-    auto wid = widget->_p->_window->get_native_handle();
+    widget->_p->_profiler = std::make_shared<profiler>();
+    widget->_p->_profiler->init();
+    auto wid = widget->_p->_profiler->get_native_handle();
 
     QWindow* w = QWindow::fromWinId(reinterpret_cast<WId>(wid));
     widget->_p->_window_widget = QWidget::createWindowContainer(w, parent);
@@ -65,47 +42,60 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
 
 void ProfilerWidget::wheelEvent(QWheelEvent* event)
 {
+    auto profiler = _p->_profiler;
     // Ctrl + Wheel = ZoomY
     // Ctrl + Shift + Wheel = ZoomX
     // Wheel = ScrollY
     // Shift + Wheel = ScrollX
     if (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier))
     {
-        _p->_zoom.x *= event->angleDelta().y() / 72.0f;
+        profiler->set_zoom(zoom() *
+                           glm::dvec2 { event->angleDelta().y() / 72.0, 1.0 });
     }
     else if (event->modifiers() & Qt::ControlModifier)
     {
-        _p->_zoom.y *= event->angleDelta().y() / 72.0f;
+        profiler->set_zoom(zoom() *
+                           glm::dvec2 { 1.0, event->angleDelta().y() / 72.0 });
     }
     else if (event->modifiers() & Qt::ShiftModifier)
     {
-        _p->_scroll.x += event->angleDelta().x() / 72.0f;
+        profiler->scroll_to(scroll() +
+                            glm::dvec2 { event->angleDelta().x() / 72.0, 1.0 });
     }
     else
     {
-        _p->_scroll.y += event->angleDelta().y() / 72.0f;
+        profiler->scroll_to(scroll() +
+                            glm::dvec2 { 0.0, event->angleDelta().y() / 72.0 });
     }
     // _p->_scroll *= glm::vec2(event->angleDelta().x(),
     // event->angleDelta().y()) / 72.0f;
     event->accept();
 }
 
-glm::dvec2 ProfilerWidget::zoom() const { return _p->_zoom; }
+glm::dvec2 ProfilerWidget::zoom() const { return _p->_profiler->zoom(); }
 
-glm::dvec2 ProfilerWidget::scroll() const { return _p->_scroll; }
+glm::dvec2 ProfilerWidget::scroll() const { return _p->_profiler->scroll(); }
 
 void ProfilerWidget::snapshot()
 {
+    prof::frame frame;
     std::stringstream ss;
     ss << std::this_thread::get_id();
     prof::apply_frames(ss.str(),
-                       [ this ](const prof::frame& pf)
+                       [ &frame ](const prof::frame& pf)
     {
-        _p->_frame = pf;
+        frame = std::move(pf);
         return true;
     });
+    _p->_profiler->set_frame(std::move(frame));
 }
 
-void ProfilerWidget::setZoom(glm::dvec2 z) { _p->_zoom = std::move(z); }
+void ProfilerWidget::setZoom(glm::dvec2 z)
+{
+    _p->_profiler->set_zoom(std::move(z));
+}
 
-void ProfilerWidget::setScroll(glm::dvec2 s) { _p->_scroll = std::move(s); }
+void ProfilerWidget::setScroll(glm::dvec2 s)
+{
+    _p->_profiler->scroll_to(std::move(s));
+}
