@@ -162,7 +162,7 @@ void profiler::render_overall()
         const auto sample_size = glm::vec2(1, d.frame_duration) / zoom;
 
         _impl->_presented_elements.push_back(
-            { glm::dvec4 { lpos, lpos + sample_size }, frames[ i ] });
+            { glm::dvec4 { lpos, lpos + sample_size }, frames[ local_index ] });
 
         v[ 0 ].position() = glm::vec3(map_to_window(lpos, size), 0.0f);
         v[ 1 ].position() = glm::vec3(
