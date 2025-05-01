@@ -13,7 +13,7 @@ public:
     glm::dvec2 zoom() const;
     glm::dvec2 scroll() const;
 
-    void snapshot();
+    void reset();
 
 public slots:
     void setZoom(glm::dvec2 z);
