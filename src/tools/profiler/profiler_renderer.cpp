@@ -70,6 +70,44 @@ void profiler_renderer::render(const glm::uvec2& size,
             map_to_window(lpos + glm::vec2(sample_size.x, 0), size), 0.0f);
         v[ 3 ].position() =
             glm::vec3(map_to_window(lpos + sample_size, size), 0.0f);
+
+        // Calculate the vertex color based on the frame duration
+        // - if the frame is no longer than 1/60 second, it's green
+        // - if the frame is about 1/30 second, it's yellow
+        // - if the frame is about 1/10 second or longer, it's red
+        float percent = (d.frame_duration - 1.0f / 60.0f) / (1.0f / 30.0f);
+        if (percent < 0.0f)
+        {
+            // faster than 60 fps
+            percent = 0.0f;
+        }
+
+        if (percent > 1.0f)
+        {
+            // slower than 30 fps
+            percent /= 3.0f;
+            // is it slower than 10 fps?
+            if (percent > 1.0f)
+            {
+                percent = 1.0f;
+            }
+            else
+            {
+                percent = 0.5f + percent / 2.0f;
+            }
+        }
+        else
+        {
+            percent = percent / 2.0f;
+        }
+
+        glm::vec4 color = { percent, 1.0f - percent, 0.0f, 1.0f };
+
+        v[ 0 ].color() = color;
+        v[ 1 ].color() = color;
+        v[ 2 ].color() = color;
+        v[ 3 ].color() = color;
+
         indices.insert(indices.end(),
                        { static_cast<int>(vertices.size()) + 0,
                          static_cast<int>(vertices.size()) + 1,
