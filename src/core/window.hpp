@@ -37,6 +37,8 @@ public:
     void set_position(size_t x, size_t y);
     void move(size_t dx, size_t dy);
 
+    glm::uvec2 get_mouse_position() const;
+
     void update();
 
     void set_as_input_source(bool flag = true);
@@ -57,6 +59,7 @@ public:
     event<void(std::shared_ptr<window>)> on_user_initialize;
 
     static std::shared_ptr<window> get_main_window();
+    static std::shared_ptr<window> get_active_window();
 
     void* get_native_handle() const;
 
