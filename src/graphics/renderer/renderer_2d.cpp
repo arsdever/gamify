@@ -239,6 +239,11 @@ void renderer_2d::draw_text(glm::vec2 baseline,
             ch._texture_offset.x + ch._size.x, ch._texture_offset.y
         } / static_cast<glm::vec2>(f->atlas()->get_size());
 
+        quad_vertices[ 0 ].color() = color;
+        quad_vertices[ 1 ].color() = color;
+        quad_vertices[ 2 ].color() = color;
+        quad_vertices[ 3 ].color() = color;
+
         const auto n = vertices.size();
 
         for (int i = 0; i < 4; i++)
@@ -274,7 +279,6 @@ void renderer_2d::draw_text(glm::vec2 baseline,
     text_material->set_property_value("u_model_matrix",
                                       glm::identity<glm::mat4>());
 
-    text_material->set_property_value("u_color", color);
     text_material->set_property_value("u_mask", f->atlas());
     text_material->set_property_value("u_image", white);
     text_material->activate();
@@ -283,7 +287,6 @@ void renderer_2d::draw_text(glm::vec2 baseline,
 
 #ifdef RENDER_TEXT_CHAR_BORDER
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    surface_shader->set_property_value("u_color", color);
     surface_shader->set_property_value("u_image", white);
     surface_shader->activate();
     text_mesh.render();
