@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 struct string_hash
 {
     using is_transparent = void; // enables heterogenous lookup
@@ -176,6 +177,16 @@ public:
             return std::enable_shared_from_this<Base>::shared_from_this();
         }
         return std::static_pointer_cast<T>(shared_from_this<Base>());
+    }
+
+    template <class T = const Base>
+    std::shared_ptr<T> shared_from_this() const
+    {
+        if constexpr (std::is_same_v<std::remove_const_t<T>, Base>)
+        {
+            return std::enable_shared_from_this<Base>::shared_from_this();
+        }
+        return std::static_pointer_cast<T>(shared_from_this<const Base>());
     }
 };
 
