@@ -3,12 +3,19 @@
 #include <QWindow>
 #include <variant>
 
+#include <common/logging.hpp>
 #include <core/window.hpp>
 #include <tools/profiler/profiler.hpp>
 
 #include "application/qt/widgets/profiler_widget.hpp"
 
 #include "prof/profiler.hpp"
+
+
+namespace
+{
+logger log() { return get_logger("profiler"); }
+} // namespace
 
 struct ProfilerWidget::impl
 {
@@ -50,6 +57,7 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
             if (std::holds_alternative<const prof::frame*>(element))
             {
                 auto fp = std::get<const prof::frame*>(element);
+                log()->info("Visualizing frame #{}", fp->get_id());
                 profiler->set_frame(*fp);
             }
         }
@@ -99,18 +107,9 @@ glm::dvec2 ProfilerWidget::zoom() const { return _p->_profiler->zoom(); }
 
 glm::dvec2 ProfilerWidget::scroll() const { return _p->_profiler->scroll(); }
 
-void ProfilerWidget::snapshot()
+void ProfilerWidget::reset()
 {
-    prof::frame frame;
-    std::stringstream ss;
-    ss << std::this_thread::get_id();
-    prof::apply_frames(ss.str(),
-                       [ &frame ](const prof::frame& pf)
-    {
-        frame = std::move(pf);
-        return true;
-    });
-    _p->_profiler->set_frame(std::move(frame));
+    _p->_profiler->unset_frame();
 }
 
 void ProfilerWidget::setZoom(glm::dvec2 z)

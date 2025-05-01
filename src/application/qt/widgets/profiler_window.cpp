@@ -38,12 +38,12 @@ ProfilerWindow::ProfilerWindow(QWidget* parent)
         [ profiler_widget ](auto value) { profiler_widget->setZoom(value); };
     toolbar->addWidget(zoomSpinBox);
     QToolButton* visualizeFrameButton = new QToolButton(this);
-    visualizeFrameButton->setText("Visualize Frame");
+    visualizeFrameButton->setText("Overall view");
     visualizeFrameButton->setCheckable(false);
     connect(visualizeFrameButton,
             &QToolButton::clicked,
             this,
-            [ profiler_widget ]() { profiler_widget->snapshot(); });
+            [ profiler_widget ]() { profiler_widget->reset(); });
 
     QToolButton* stopProfilingButton = new QToolButton(this);
     stopProfilingButton->setText("Stop");
