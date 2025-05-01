@@ -17,6 +17,7 @@
 #include "multi_spinbox.hpp"
 #include "project/property.hpp"
 #include "spinbox.hpp"
+#include "vec3_widget.hpp"
 
 namespace ui
 {

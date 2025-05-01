@@ -33,7 +33,6 @@ public:
     void setAccelerated(bool accelerated);
     bool isAccelerated() const;
 
-protected:
     ::event<void(glm::vec<N, T>)> value_changed;
 
 private:
