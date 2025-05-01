@@ -10,6 +10,7 @@
 #include <project/game_object.hpp>
 #include <project/project_manager.hpp>
 #include <project/scene.hpp>
+#include <prof/profiler.hpp>
 
 #include "game_context.hpp"
 
@@ -27,6 +28,7 @@ void game_context::set_viewport_size(glm::uvec2 size)
 
 void game_context::initialize()
 {
+    auto p = prof::profile(__FUNCTION__);
     log()->info("Initializing game context");
 
     project_manager::initialize();
@@ -37,6 +39,7 @@ void game_context::initialize()
 
 void game_context::load_assets()
 {
+    auto p = prof::profile(__FUNCTION__);
     assets::asset_manager::initialize("resources");
     assets::asset_manager::scan_project_directory();
     assets::asset_manager::setup_project_directory_watch();
@@ -44,6 +47,7 @@ void game_context::load_assets()
 
 void game_context::render()
 {
+    auto p = prof::profile(__FUNCTION__);
     auto cam = components::camera::get_active();
     if (!cam)
     {
@@ -54,24 +58,28 @@ void game_context::render()
 
 void game_context::init()
 {
+    auto p = prof::profile(__FUNCTION__);
     scene::get_active_scene()->visit_root_objects([](auto obj)
     { obj->init(); });
 }
 
 void game_context::update()
 {
+    auto p = prof::profile(__FUNCTION__);
     scene::get_active_scene()->visit_root_objects([](auto obj)
     { obj->update(); });
 }
 
 void game_context::deinit()
 {
+    auto p = prof::profile(__FUNCTION__);
     scene::get_active_scene()->visit_root_objects([](auto obj)
     { obj->deinit(); });
 }
 
 void game_context::create_empty_game_object()
 {
+    auto p = prof::profile(__FUNCTION__);
     auto new_object = game_object::create();
     new_object->set_name("New Game Object");
 
@@ -85,6 +93,7 @@ void game_context::create_empty_game_object()
 
 void game_context::create_camera()
 {
+    auto p = prof::profile(__FUNCTION__);
     auto obj = game_object::create();
     obj->set_name("Camera");
 
@@ -103,6 +112,7 @@ void game_context::create_camera()
 
 void game_context::create_cube()
 {
+    auto p = prof::profile(__FUNCTION__);
     auto obj = game_object::create();
     obj->set_name("Cube");
 
@@ -121,6 +131,7 @@ void game_context::create_cube()
 
 void game_context::create_light()
 {
+    auto p = prof::profile(__FUNCTION__);
     auto obj = game_object::create();
     obj->set_name("Light");
 
@@ -136,6 +147,7 @@ void game_context::create_light()
 void game_context::set_object_selection(
     std::vector<std::shared_ptr<game_object>> objects)
 {
+    auto p = prof::profile(__FUNCTION__);
     on_object_selected(objects[ 0 ]);
 }
 
