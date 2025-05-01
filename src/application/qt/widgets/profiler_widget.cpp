@@ -3,9 +3,13 @@
 #include <QWindow>
 
 #include <core/window.hpp>
+#include <tools/profiler/profiler_frame_renderer.hpp>
 #include <tools/profiler/profiler_renderer.hpp>
 
 #include "application/qt/widgets/profiler_widget.hpp"
+
+#include "prof/profiler.hpp"
+
 
 struct ProfilerWidget::impl
 {
@@ -15,6 +19,8 @@ struct ProfilerWidget::impl
 
     glm::dvec2 _zoom { .3f, .0001f };
     glm::dvec2 _scroll { 0.0f, 0.0f };
+
+    std::optional<prof::frame> _frame;
 };
 
 ProfilerWidget::ProfilerWidget(QWidget* parent)
@@ -35,6 +41,12 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
         {
             auto wnd = widget->_p->_window;
             auto size = wnd->get_size();
+            if (widget->_p->_frame.has_value())
+            {
+                profiler_frame_renderer {}.render(widget->_p->_frame.value(),
+                                                  size);
+                return;
+            }
             widget->_p->_profilerRenderer->render(
                 size, widget->_p->_zoom, widget->_p->_scroll);
         };
@@ -81,6 +93,18 @@ void ProfilerWidget::wheelEvent(QWheelEvent* event)
 glm::dvec2 ProfilerWidget::zoom() const { return _p->_zoom; }
 
 glm::dvec2 ProfilerWidget::scroll() const { return _p->_scroll; }
+
+void ProfilerWidget::snapshot()
+{
+    std::stringstream ss;
+    ss << std::this_thread::get_id();
+    prof::apply_frames(ss.str(),
+                       [ this ](const prof::frame& pf)
+    {
+        _p->_frame = pf;
+        return true;
+    });
+}
 
 void ProfilerWidget::setZoom(glm::dvec2 z) { _p->_zoom = std::move(z); }
 
