@@ -1,6 +1,7 @@
 #include <QLayout>
 #include <QWheelEvent>
 #include <QWindow>
+#include <variant>
 
 #include <core/window.hpp>
 #include <tools/profiler/profiler.hpp>
@@ -31,6 +32,28 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
     widget->_p->_profiler = std::make_shared<profiler>();
     widget->_p->_profiler->init();
     auto wid = widget->_p->_profiler->get_native_handle();
+
+    auto profiler = widget->_p->_profiler;
+    profiler->get_events()->mouse_click +=
+        [ p = std::weak_ptr(profiler) ](auto me)
+    {
+        if (auto profiler = p.lock())
+        {
+            auto elem = profiler->get_at(me.get_local_position());
+
+            if (!elem.has_value())
+            {
+                return;
+            }
+
+            typename profiler::element_type element = elem.value();
+            if (std::holds_alternative<const prof::frame*>(element))
+            {
+                auto fp = std::get<const prof::frame*>(element);
+                profiler->set_frame(*fp);
+            }
+        }
+    };
 
     QWindow* w = QWindow::fromWinId(reinterpret_cast<WId>(wid));
     widget->_p->_window_widget = QWidget::createWindowContainer(w, parent);

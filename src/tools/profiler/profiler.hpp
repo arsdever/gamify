@@ -6,7 +6,7 @@
 class profiler : public core::window
 {
 public:
-    using element_type = std::variant<prof::frame, prof::data_sample>;
+    using element_type = std::variant<const prof::frame*, const prof::data_sample*>;
 
 public:
     profiler();
@@ -26,6 +26,8 @@ public:
 protected:
     void initialize();
     void render();
+
+    void render_overall();
 
 private:
     struct impl;
