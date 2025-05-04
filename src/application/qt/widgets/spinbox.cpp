@@ -30,6 +30,7 @@ struct SpinBox::SpinBoxPrivate
     double _pageStep = 10.0;
     int _decimals = 2;
     bool _accelerated = false;
+    int _labelSpacing = 5;
 
     QString _label;
 
@@ -96,6 +97,10 @@ void SpinBox::setAccelerated(bool accelerated)
 }
 
 bool SpinBox::isAccelerated() const { return _p->_accelerated; }
+
+void SpinBox::setLabelSpacing(int spacing) { _p->_labelSpacing = spacing; }
+
+int SpinBox::labelSpacing() { return _p->_labelSpacing; }
 
 void SpinBox::enterEvent(QEnterEvent* event)
 {
@@ -179,16 +184,17 @@ void SpinBox::paintEvent(QPaintEvent* event)
         QRectF(rect()).adjusted(0.5f, 0.5f, -0.5f, -0.5f), 5.0f, 5.0f);
 
     painter.setPen(pal.color(QPalette::Text));
-    painter.drawText(QRectF(rect()).adjusted(
-                         15.5f + fontMetrics().boundingRect(label()).width(),
-                         0.5f,
-                         -15.5f,
-                         -0.5f),
-                     Qt::AlignRight,
-                     QString::number(value(), 'f', decimals()));
-    painter.drawText(QRectF(rect()).adjusted(15.5f, 0.5f, -15.5f, -0.5f),
-                     Qt::AlignLeft,
-                     label());
+    static constexpr auto padding = 5.0f;
+    auto textRect = QRectF(rect()).adjusted(padding, 0.5f, -padding, -0.5f);
+    auto labelWidth = fontMetrics().boundingRect(label()).width();
+    auto valueRect = textRect.adjusted(labelWidth + labelSpacing(), 0, 0, 0);
+
+    QString valueText = QString::number(value(), 'f', decimals());
+    valueText = fontMetrics().elidedText(
+        std::move(valueText), Qt::TextElideMode::ElideRight, valueRect.width());
+
+    painter.drawText(valueRect, Qt::AlignRight, valueText);
+    painter.drawText(textRect, Qt::AlignLeft, label());
 
     event->accept();
 }
