@@ -42,6 +42,9 @@ public:
     void setAccelerated(bool accelerated);
     bool isAccelerated() const;
 
+    void setLabelSpacing(int spacing);
+    int labelSpacing();
+
 signals:
     void valueChanged(double value);
 
