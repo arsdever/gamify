@@ -20,23 +20,35 @@ ProfilerWindow::ProfilerWindow(QWidget* parent)
     auto profiler_widget = ProfilerWidget::create();
     setCentralWidget(profiler_widget);
 
-    profiler_widget->setZoom({ 0.3, 0.0001 });
-
     ui::MultiSpinBox<2, double>* zoomSpinBox =
         new ui::MultiSpinBox<2, double>(this);
-    // ui::MultiSpinBox<2, double>* scrollSpinBox =
-    //     new ui::MultiSpinBox<2, double>(this);
+    ui::MultiSpinBox<2, double>* scrollSpinBox =
+        new ui::MultiSpinBox<2, double>(this);
 
     zoomSpinBox->setLabel("Zoom");
     zoomSpinBox->setRangeMin({ 0.00001, 0.00001 });
     zoomSpinBox->setRangeMax({ 100, 100 });
     zoomSpinBox->setValue(profiler_widget->zoom());
-    zoomSpinBox->setStep({ 0.0000001, 0.0000001 });
-    zoomSpinBox->setSingleStep({ 0.0001, 0.0001 });
-    zoomSpinBox->setPageStep({ 0.1, 0.1 });
+    zoomSpinBox->setStep({ 0.01, 0.01});
+    zoomSpinBox->setSingleStep({ 1.0, 1.0 });
+    zoomSpinBox->setPageStep({ 10, 10 });
+    zoomSpinBox->setValue(profiler_widget->zoom());
     zoomSpinBox->value_changed +=
         [ profiler_widget ](auto value) { profiler_widget->setZoom(value); };
     toolbar->addWidget(zoomSpinBox);
+    scrollSpinBox->setLabel("Scroll");
+    scrollSpinBox->setRangeMin({ -std::numeric_limits<double>::infinity(),
+                                 -std::numeric_limits<double>::infinity() });
+    scrollSpinBox->setRangeMax({ std::numeric_limits<double>::infinity(),
+                                 std::numeric_limits<double>::infinity() });
+    scrollSpinBox->setValue(profiler_widget->scroll());
+    scrollSpinBox->setStep({ 0.01, 0.01 });
+    scrollSpinBox->setSingleStep({ 1, 1 });
+    scrollSpinBox->setPageStep({ 4, 4 });
+    scrollSpinBox->setValue(profiler_widget->scroll());
+    scrollSpinBox->value_changed +=
+        [ profiler_widget ](auto value) { profiler_widget->setScroll(value); };
+    toolbar->addWidget(scrollSpinBox);
     QToolButton* visualizeFrameButton = new QToolButton(this);
     visualizeFrameButton->setText("Overall view");
     visualizeFrameButton->setCheckable(false);
