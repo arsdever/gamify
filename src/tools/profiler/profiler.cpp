@@ -27,7 +27,7 @@ logger log() { return get_logger("profiler"); }
 struct profiler::impl
 {
     float _zoom { 1 };
-    glm::vec2 zoom { .3, .0001 };
+    glm::vec2 zoom { 1, 1 };
     glm::vec2 scroll { 0, 0 };
     bool autoscroll { true };
 
@@ -85,7 +85,11 @@ void profiler::set_zoom(glm::vec2 z) { _impl->zoom = std::move(z); }
 
 glm::vec2 profiler::scroll() { return _impl->scroll; }
 
-void profiler::scroll_to(glm::vec2 s) { _impl->scroll = std::move(s); }
+void profiler::scroll_to(glm::vec2 s)
+{
+    _impl->scroll = std::move(s);
+    log()->info("{}", _impl->scroll.x);
+}
 
 void profiler::render()
 {
@@ -105,78 +109,111 @@ void profiler::render_overall()
     auto zoom = _impl->zoom;
     auto scroll = _impl->scroll;
 
+    // Expect each frame to be less than 100ms by default
+    // This matches the worst fps expected - 10 fps
+    static constexpr float default_frame_duration = 1.0f / 10.0f;
+    // This is also the default zoom on the y axis, meaning 100ms should be
+    // filling the size.y
+    static constexpr float vertical_pixels_per_ms = 1.0f / 1000.0f;
+
+    // Expect the window to visualize 100 frames by default
+    static constexpr float default_frame_count = 100.0f;
+
+    // The above parameters can be varied with zoom and scale options
+
     framebuffer::unbind();
     graphics::set_viewport({ 0, 0 }, { size });
+
+    // TODO: This can be configurable
     graphics::clear({ .1f, .1f, .1f, 1.0f });
-    auto sc = scroll;
-
-    std::stringstream ss;
-    ss << std::this_thread::get_id();
-
-    struct prof_data
-    {
-        float frame_duration;
-    };
-
-    std::vector<prof_data> data;
-    std::vector<const prof::frame*> frames;
-
-    prof::apply_frames(ss.str(),
-                       [ &data, &frames ](const auto& frame)
-    {
-        data.emplace_back(
-            std::chrono::duration_cast<std::chrono::duration<float>>(
-                frame.end() - frame.start())
-                .count());
-        frames.push_back(&frame);
-        return true;
-    });
 
     std::vector<vertex3d> vertices;
     std::vector<int> indices;
     std::array<vertex3d, 4> v;
 
-    auto map_to_window = [](glm::vec2 point, glm::vec2 window) -> glm::vec2
+    auto map_screen_to_gl = [](glm::vec2 point, glm::vec2 window) -> glm::vec2
     { return (point / window - 0.5f) * 2.0f; };
 
-    auto vp_sample_count = size.x * zoom.x + 1;
+    // Calculate the horizontal size of a sample to have specified number of
+    // samples visible
+    // If we zoom in (increased zoom 1+), the number of samples should decrease
+    auto frame_count = default_frame_count / zoom.x;
+    glm::vec2 sample_size { size.x / frame_count,
+                            size.y / vertical_pixels_per_ms / 100.0f * zoom.y };
 
-    const auto count = std::min<size_t>(vp_sample_count, data.size());
+    // Find indices that should be rendered
+    // TODO: Implement scrolling, currently hardcoded to 0
+    // Expecting the scroll in pixels
+    size_t start_index = scroll.x / sample_size.x;
+    size_t end_index = ceil(size.x / sample_size.x) + start_index;
 
-    if (count < data.size())
+    // TODO: The tread id should be configurable
+    std::stringstream ss;
+    ss << std::this_thread::get_id();
+
+    // TODO: Use the frames vector instead?
+    struct prof_data
     {
-        sc = glm::vec2(data.size() - count, 0) / zoom;
-    }
+        float frame_duration;
+    };
+
+    std::vector<const prof::frame*> frames;
+    size_t index = 0;
+
+    frames.reserve(prof::available_frames_count(ss.str()));
+    prof::apply_frames(
+        ss.str(),
+        [ &frames, &index, start_index, end_index ](const auto& frame)
+    {
+        while (index++ < start_index)
+        {
+            return true;
+        }
+
+        if (index > end_index)
+        {
+            return false;
+        }
+
+        frames.emplace_back(&frame);
+        return true;
+    });
+    end_index = std::min(end_index, frames.size());
 
     _impl->_presented_elements.clear();
 
     auto mouse_pos = get_mouse_position();
-    for (size_t i = 0; i < count; ++i)
+    auto it = frames.begin();
+    for (size_t i = 0; i < frames.size(); ++i)
     {
-        const auto local_index = data.size() - 1 - i;
-        auto& d = data[ local_index ];
+        const auto frame_index = i + start_index;
+        auto& frame = *frames[ i ];
+        float frame_duration =
+            std::chrono::duration_cast<std::chrono::duration<double>>(
+                frame.end() - frame.start())
+                .count();
 
-        const auto spos = glm::uvec2(local_index, 0);
-        const auto pos = glm::vec2(spos) / zoom;
-        const auto lpos = pos - sc;
-        const auto sample_size = glm::vec2(1, d.frame_duration) / zoom;
+        const auto lb = glm::vec2(static_cast<float>(frame_index) -
+                                      static_cast<float>(start_index),
+                                  0) *
+                        sample_size;
+        const auto ru = lb + glm::vec2(1.0f, frame_duration) * sample_size;
 
         _impl->_presented_elements.push_back(
-            { glm::dvec4 { lpos, lpos + sample_size }, frames[ local_index ] });
+            { glm::dvec4 { lb, ru }, frames[ i ] });
 
-        v[ 0 ].position() = glm::vec3(map_to_window(lpos, size), 0.0f);
-        v[ 1 ].position() = glm::vec3(
-            map_to_window(lpos + glm::vec2(0, sample_size.y), size), 0.0f);
-        v[ 2 ].position() = glm::vec3(
-            map_to_window(lpos + glm::vec2(sample_size.x, 0), size), 0.0f);
+        v[ 0 ].position() =
+            glm::vec3(map_screen_to_gl({ lb.x, ru.y }, size), 0.0f);
+        v[ 1 ].position() = glm::vec3(map_screen_to_gl(ru, size), 0.0f);
+        v[ 2 ].position() = glm::vec3(map_screen_to_gl(lb, size), 0.0f);
         v[ 3 ].position() =
-            glm::vec3(map_to_window(lpos + sample_size, size), 0.0f);
+            glm::vec3(map_screen_to_gl({ ru.x, lb.y }, size), 0.0f);
 
         // Calculate the vertex color based on the frame duration
         // - if the frame is no longer than 1/60 second, it's green
         // - if the frame is about 1/30 second, it's yellow
         // - if the frame is about 1/10 second or longer, it's red
-        float percent = (d.frame_duration - 1.0f / 60.0f) / (1.0f / 30.0f);
+        float percent = (frame_duration - 1.0f / 60.0f) / (1.0f / 30.0f);
         if (percent < 0.0f)
         {
             // faster than 60 fps
@@ -206,7 +243,7 @@ void profiler::render_overall()
 
         auto mpos = mouse_pos;
         mpos.y = size.y - mpos.y;
-        if (core::rect_contains(lpos, lpos + sample_size, mpos))
+        if (core::rect_contains(lb, ru, mpos))
         {
             color = { percent * .5f, (1.0f - percent) * .5f, .7f, 1.0f };
         }
