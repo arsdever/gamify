@@ -8,7 +8,12 @@ class ProfilerWindow : public QMainWindow
 
 public:
     explicit ProfilerWindow(QWidget* parent = nullptr);
-    ~ProfilerWindow() override = default;
+    ~ProfilerWindow() override;
+
+protected:
+    void resizeEvent(QResizeEvent* event) override;
 
 private:
+    struct impl;
+    std::unique_ptr<impl> _impl;
 };

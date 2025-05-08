@@ -17,12 +17,6 @@
 #include "graphics/texture.hpp"
 #include "graphics/vertex.hpp"
 #include "profiler_frame_renderer.hpp"
-#include "tools/profiler/profiler_renderer.hpp"
-
-namespace
-{
-logger log() { return get_logger("profiler"); }
-} // namespace
 
 struct profiler::impl
 {
@@ -79,17 +73,13 @@ void profiler::set_frame(prof::frame f) { _impl->_frame = std::move(f); }
 
 void profiler::unset_frame() { _impl->_frame = {}; }
 
-glm::vec2 profiler::zoom() { return _impl->zoom; }
+glm::vec2 profiler::zoom() const { return _impl->zoom; }
 
 void profiler::set_zoom(glm::vec2 z) { _impl->zoom = std::move(z); }
 
-glm::vec2 profiler::scroll() { return _impl->scroll; }
+glm::vec2 profiler::scroll() const { return _impl->scroll; }
 
-void profiler::scroll_to(glm::vec2 s)
-{
-    _impl->scroll = std::move(s);
-    log()->info("{}", _impl->scroll.x);
-}
+void profiler::scroll_to(glm::vec2 s) { _impl->scroll = std::move(s); }
 
 void profiler::render()
 {
@@ -101,6 +91,20 @@ void profiler::render()
     {
         render_overall();
     }
+}
+
+glm::vec2 profiler::get_sample_size() const
+{
+    // 5px per sample
+    static constexpr float default_horizontal_sample_width = 5.0f;
+
+    // 10px per 1millisecond
+    static constexpr float vertical_pixels_per_ms = 10.0f;
+
+    glm::vec2 sample_size { default_horizontal_sample_width,
+                            vertical_pixels_per_ms };
+
+    return sample_size * zoom();
 }
 
 void profiler::render_overall()
@@ -134,18 +138,13 @@ void profiler::render_overall()
     auto map_screen_to_gl = [](glm::vec2 point, glm::vec2 window) -> glm::vec2
     { return (point / window - 0.5f) * 2.0f; };
 
-    // Calculate the horizontal size of a sample to have specified number of
-    // samples visible
-    // If we zoom in (increased zoom 1+), the number of samples should decrease
-    auto frame_count = default_frame_count / zoom.x;
-    glm::vec2 sample_size { size.x / frame_count,
-                            size.y / vertical_pixels_per_ms / 100.0f * zoom.y };
+    glm::vec2 sample_size = get_sample_size();
 
     // Find indices that should be rendered
     // TODO: Implement scrolling, currently hardcoded to 0
     // Expecting the scroll in pixels
     size_t start_index = scroll.x / sample_size.x;
-    size_t end_index = ceil(size.x / sample_size.x) + start_index;
+    size_t end_index = ceil(size.x / sample_size.x) + start_index + 1;
 
     // TODO: The tread id should be configurable
     std::stringstream ss;
@@ -193,11 +192,12 @@ void profiler::render_overall()
                 frame.end() - frame.start())
                 .count();
 
-        const auto lb = glm::vec2(static_cast<float>(frame_index) -
-                                      static_cast<float>(start_index),
-                                  0) *
-                        sample_size;
-        const auto ru = lb + glm::vec2(1.0f, frame_duration) * sample_size;
+        const auto lb =
+            glm::vec2(static_cast<float>(frame_index), 0) * sample_size -
+            scroll;
+        const auto ru =
+            lb + glm::vec2(1.0f, frame_duration * 1000.0f) * sample_size -
+            glm::vec2(1.0f, 0.0f);
 
         _impl->_presented_elements.push_back(
             { glm::dvec4 { lb, ru }, frames[ i ] });

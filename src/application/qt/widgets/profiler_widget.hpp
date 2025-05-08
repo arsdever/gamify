@@ -13,7 +13,12 @@ public:
     glm::dvec2 zoom() const;
     glm::dvec2 scroll() const;
 
+    QSize sizeHint() const override;
+
     void reset();
+
+signals:
+    void frameSelected();
 
 public slots:
     void setZoom(glm::dvec2 z);
