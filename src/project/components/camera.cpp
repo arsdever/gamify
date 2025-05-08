@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nlohmann/json.hpp>
+#include <prof/profiler.hpp>
 
 #include "project/components/camera.hpp"
 
@@ -24,6 +25,7 @@
 #include "project/serialization_utilities.hpp"
 #include "project/serializer.hpp"
 #include "project/serializer_json.hpp"
+
 
 using namespace serialization::utilities;
 
@@ -124,6 +126,7 @@ glm::dvec4 camera::get_background_color() const
 
 void camera::render()
 {
+    auto p = prof::profile(__FUNCTION__);
     graphics::set_viewport({ 0, 0 }, _render_size);
     setup_lights();
     render_on_private_texture();
