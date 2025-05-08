@@ -1,6 +1,9 @@
 #include <QLayout>
 #include <QWheelEvent>
 #include <QWindow>
+#include <chrono>
+#include <ratio>
+#include <thread>
 #include <variant>
 
 #include <common/logging.hpp>
@@ -10,7 +13,6 @@
 #include "application/qt/widgets/profiler_widget.hpp"
 
 #include "prof/profiler.hpp"
-
 
 namespace
 {
@@ -22,7 +24,7 @@ struct ProfilerWidget::impl
     QWidget* _window_widget = nullptr;
     std::shared_ptr<profiler> _profiler = nullptr;
 
-    std::optional<prof::frame> _frame;
+    bool _frame_mode = false;
 };
 
 ProfilerWidget::ProfilerWidget(QWidget* parent)
@@ -30,6 +32,7 @@ ProfilerWidget::ProfilerWidget(QWidget* parent)
     , _p(std::make_unique<impl>())
 {
     setLayout(new QVBoxLayout());
+    layout()->setContentsMargins(0, 0, 0, 0);
 }
 
 ProfilerWidget* ProfilerWidget::create(QWidget* parent)
@@ -42,7 +45,7 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
 
     auto profiler = widget->_p->_profiler;
     profiler->get_events()->mouse_click +=
-        [ p = std::weak_ptr(profiler) ](auto me)
+        [ widget, p = std::weak_ptr(profiler) ](auto me)
     {
         if (auto profiler = p.lock())
         {
@@ -59,8 +62,10 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
                 auto fp = std::get<const prof::frame*>(element);
                 log()->info("Visualizing frame #{}", fp->get_id());
                 profiler->set_frame(*fp);
+                widget->_p->_frame_mode = true;
             }
         }
+        emit widget->frameSelected();
     };
 
     QWindow* w = QWindow::fromWinId(reinterpret_cast<WId>(wid));
@@ -107,9 +112,34 @@ glm::dvec2 ProfilerWidget::zoom() const { return _p->_profiler->zoom(); }
 
 glm::dvec2 ProfilerWidget::scroll() const { return _p->_profiler->scroll(); }
 
+QSize ProfilerWidget::sizeHint() const
+{
+    if (_p->_frame_mode)
+    {
+        return size();
+    }
+
+    std::stringstream ss;
+    ss << std::this_thread::get_id();
+    auto duration = 0;
+    auto* lf = prof::longest_frame(ss.str());
+    if (lf)
+    {
+        duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       lf->end() - lf->start())
+                       .count();
+    }
+    glm::vec2 size =
+        glm::vec2(prof::available_frames_count(ss.str()), duration) *
+        _p->_profiler->get_sample_size();
+
+    return QSize(size.x, size.y);
+}
+
 void ProfilerWidget::reset()
 {
     _p->_profiler->unset_frame();
+    _p->_frame_mode = false;
 }
 
 void ProfilerWidget::setZoom(glm::dvec2 z)
