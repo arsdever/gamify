@@ -60,21 +60,22 @@ struct asset_manager::impl
 
     void update_index()
     {
-#define FUNCTION_NAME __FUNCTION__
-        auto p = prof::profile(FUNCTION_NAME);
+        std::string function_name =
+            std::source_location::current().function_name();
+        auto p = prof::profile(function_name);
         auto project_path = common::filesystem::path(_impl->project_path);
         common::file index_file(
             std::string((project_path / "resources.json").full_path()));
-
         std::function<void(common::filesystem::path)> scan_dir;
         scan_dir = [ & ](common::filesystem::path path)
         {
-            auto p = prof::profile(FUNCTION_NAME "::scan_dir");
+            auto p = prof::profile(function_name + "::scan_dir");
             common::directory dir(std::string(path.full_path()));
-            dir.visit_files(
-                [ this, scan_dir, path ](std::string file_path, bool is_dir)
+            dir.visit_files([ this, scan_dir, path, function_name ](
+                                std::string file_path, bool is_dir)
             {
-                auto p = prof::profile(FUNCTION_NAME "::scan_dir::visit_files");
+                auto p =
+                    prof::profile(function_name + "::scan_dir::visit_files");
                 if (is_dir)
                 {
                     if (file_path == "." || file_path == "..")
