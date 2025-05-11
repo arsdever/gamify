@@ -30,6 +30,7 @@ protected:
     void initialize();
     void render();
 
+    void render_frame(const prof::frame& f);
     void render_overall();
 
 private:

@@ -85,7 +85,7 @@ void profiler::render()
 {
     if (_impl->_frame.has_value())
     {
-        profiler_frame_renderer {}.render(*_impl->_frame, get_size());
+        render_frame(_impl->_frame.value());
     }
     else
     {
@@ -105,6 +105,112 @@ glm::vec2 profiler::get_sample_size() const
                             vertical_pixels_per_ms };
 
     return sample_size * zoom();
+}
+
+void profiler::render_frame(const prof::frame& f)
+{
+    framebuffer::unbind();
+    graphics::set_viewport({ 0, 0 }, { get_size() });
+    graphics::clear({ .1f, .1f, .1f, 1.0f });
+    auto mouse_pos = core::window::get_active_window()->get_mouse_position();
+
+    auto size = get_size();
+    size_t layer_count = f.max_depth() + 1;
+    double layer_height = 1.0 / layer_count;
+
+    std::chrono::duration<double> frame_duration = f.end() - f.start();
+
+    std::array<vertex3d, 4> sample_vertices;
+    // std::vector<std::tuple<std::string, glm::vec2>> texts;
+    std::optional<std::tuple<std::string, glm::vec2>> text;
+    std::vector<vertex3d> vertices;
+    std::vector<int> indices;
+    _impl->_presented_elements.clear();
+
+    for (auto& sample : f.samples())
+    {
+        double start_time_relation =
+            (sample.start() - f.start()) / frame_duration;
+        double end_time_relation = (sample.end() - f.start()) / frame_duration;
+
+        auto layer = sample.depth();
+        auto layer_pos = layer * layer_height;
+        auto layer_size = layer_height;
+
+        glm::dvec4 rect = { start_time_relation,
+                            layer_pos,
+                            end_time_relation,
+                            layer_pos + layer_size };
+
+        sample_vertices[ 0 ].position() =
+            (glm::dvec3 { rect.x, rect.y, 0.0 } - glm::dvec3(0.5)) * 2.0;
+        sample_vertices[ 1 ].position() =
+            (glm::dvec3 { rect.x, rect.w, 0.0 } - glm::dvec3(0.5)) * 2.0;
+        sample_vertices[ 2 ].position() =
+            (glm::dvec3 { rect.z, rect.w, 0.0 } - glm::dvec3(0.5)) * 2.0;
+        sample_vertices[ 3 ].position() =
+            (glm::dvec3 { rect.z, rect.y, 0.0 } - glm::dvec3(0.5)) * 2.0;
+
+        indices.insert(indices.end(),
+                       { static_cast<int>(vertices.size()) + 0,
+                         static_cast<int>(vertices.size()) + 1,
+                         static_cast<int>(vertices.size()) + 2,
+                         static_cast<int>(vertices.size()) + 2,
+                         static_cast<int>(vertices.size()) + 3,
+                         static_cast<int>(vertices.size()) + 0 });
+
+        std::chrono::duration<double> sample_duration = sample.diff();
+        auto score = sample_duration / frame_duration;
+        auto color = glm::vec4(score, 1.0f - score, 0.0f, 1.0f);
+        sample_vertices[ 0 ].color() = color / 1.5f;
+        sample_vertices[ 1 ].color() = color / 1.5f;
+        sample_vertices[ 2 ].color() = color / 1.5f;
+        sample_vertices[ 3 ].color() = color / 1.5f;
+
+        vertices.insert(
+            vertices.end(), sample_vertices.begin(), sample_vertices.end());
+
+        // check if mouse is in the rect
+        auto mp = mouse_pos;
+        mp.y = size.y - mp.y;
+        if (mp.x >= rect.x * size.x && mp.x <= rect.z * size.x &&
+            mp.y >= rect.y * size.y && mp.y <= rect.w * size.y)
+        {
+            // highlight sample
+            sample_vertices[ 0 ].color() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            sample_vertices[ 1 ].color() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            sample_vertices[ 2 ].color() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            sample_vertices[ 3 ].color() = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            // set the text
+            text = { sample.name(), mouse_pos };
+        }
+
+        _impl->_presented_elements.push_back(
+            { rect * glm::dvec4(size, size), &sample });
+
+        // auto txt_pos = glm::vec2 { start_time_relation * viewport_size.x,
+        //                            ((layer_count - layer - .5) *
+        //                            layer_height) *
+        //                                viewport_size.y };
+        // texts.emplace_back(sample.name(), txt_pos);
+    }
+
+    std::shared_ptr<graphics::mesh> m = std::make_shared<graphics::mesh>();
+    m->set_vertices(std::move(vertices));
+    m->set_indices(std::move(indices));
+    m->init();
+
+    auto mat =
+        assets::asset_manager::get<graphics::material>("standard.surface.mat");
+    auto txt =
+        assets::asset_manager::get<graphics::texture>("images.white.png");
+
+    mat->set_property_value("u_vp_matrix", glm::identity<glm::mat4>());
+    mat->set_property_value("u_model_matrix", glm::identity<glm::mat4>());
+    mat->set_property_value("u_color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    mat->set_property_value("u_image", txt.get());
+    renderer_3d().draw_mesh(m, mat);
 }
 
 void profiler::render_overall()
