@@ -24,6 +24,41 @@ struct string_hash
     }
 };
 
+template <typename Duration>
+std::string format_scaled(Duration d)
+{
+    using namespace std::chrono;
+    using namespace std::literals;
+
+    auto ns = duration_cast<nanoseconds>(d).count();
+    double value;
+    std::string suffix;
+
+    if (ns >= 1'000'000'000)
+    {
+        value = static_cast<double>(ns) / 1'000'000'000.0;
+        suffix = "s";
+    }
+    else if (ns >= 1'000'000)
+    {
+        value = static_cast<double>(ns) / 1'000'000.0;
+        suffix = "ms";
+    }
+    else if (ns >= 1'000)
+    {
+        value = static_cast<double>(ns) / 1'000.0;
+        suffix = "µs";
+    }
+    else
+    {
+        value = static_cast<double>(ns);
+        suffix = "ns";
+    }
+
+    // Use std::format to format the value with a reasonable default precision
+    return std::format("{:.3f}{}", value, suffix);
+}
+
 // geometry utils
 
 template <typename T>
