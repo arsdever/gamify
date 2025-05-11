@@ -1,10 +1,7 @@
 #include <QLayout>
+#include <QToolTip>
 #include <QWheelEvent>
 #include <QWindow>
-#include <chrono>
-#include <ratio>
-#include <thread>
-#include <variant>
 
 #include <common/logging.hpp>
 #include <core/window.hpp>
@@ -66,6 +63,54 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
             }
         }
         emit widget->frameSelected();
+    };
+
+    profiler->get_events()->mouse_move +=
+        [ widget, p = std::weak_ptr(profiler) ](auto me)
+    {
+        if (auto profiler = p.lock())
+        {
+            auto elem = profiler->get_at(me.get_local_position());
+            if (!elem.has_value())
+            {
+                return;
+            }
+            typename profiler::element_type element = elem.value();
+
+            if (widget->_p->_frame_mode &&
+                std::holds_alternative<const prof::data_sample*>(element))
+            {
+                auto data = std::get<const prof::data_sample*>(element);
+                QToolTip::showText(
+                    QCursor::pos(),
+                    QString::fromStdString(
+                        std::format("Sample #{}\nDuration: {}\nStack depth: {}",
+                                    data->name(),
+                                    format_scaled(data->diff()),
+                                    data->depth())),
+                    nullptr,
+                    {},
+                    5000);
+            }
+            else
+            {
+                if (std::holds_alternative<const prof::frame*>(element))
+                {
+                    auto fp = std::get<const prof::frame*>(element);
+                    QToolTip::showText(
+                        QCursor::pos(),
+                        QString::fromStdString(std::format(
+                            "Frame #{}\nDuration: {}",
+                            fp->get_id(),
+                            format_scaled(std::chrono::duration_cast<
+                                          std::chrono::microseconds>(
+                                fp->end() - fp->start())))),
+                        nullptr,
+                        {},
+                        5000);
+                }
+            }
+        }
     };
 
     QWindow* w = QWindow::fromWinId(reinterpret_cast<WId>(wid));

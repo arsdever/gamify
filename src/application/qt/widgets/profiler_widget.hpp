@@ -23,8 +23,6 @@ signals:
 public slots:
     void setZoom(glm::dvec2 z);
     void setScroll(glm::dvec2 s);
-
-protected:
     void wheelEvent(QWheelEvent* event) override;
 
 private:
