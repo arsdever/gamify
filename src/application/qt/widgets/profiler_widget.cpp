@@ -84,7 +84,7 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
                 QToolTip::showText(
                     QCursor::pos(),
                     QString::fromStdString(
-                        std::format("Sample #{}\nDuration: {}\nStack depth: {}",
+                        std::format("Sample: {}\nDuration: {}\nStack depth: {}",
                                     data->name(),
                                     format_scaled(data->diff()),
                                     data->depth())),
@@ -100,7 +100,7 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
                     QToolTip::showText(
                         QCursor::pos(),
                         QString::fromStdString(std::format(
-                            "Frame #{}\nDuration: {}",
+                            "Frame: #{}\nDuration: {}",
                             fp->get_id(),
                             format_scaled(std::chrono::duration_cast<
                                           std::chrono::microseconds>(
