@@ -19,10 +19,16 @@ public:
 
 signals:
     void frameSelected();
+    void scrollChanged();
 
 public slots:
     void setZoom(glm::dvec2 z);
     void setScroll(glm::dvec2 s);
+
+    void startPanning(QPointF position);
+    void stopPanning(QPointF position = QCursor::pos());
+
+protected:
     void wheelEvent(QWheelEvent* event) override;
 
 private:

@@ -1,4 +1,5 @@
 /* clang-format off */
+#include <string>
 #include <GLFW/glfw3.h>
 /* clang-format on */
 
@@ -79,7 +80,23 @@ void profiler::set_zoom(glm::vec2 z) { _impl->zoom = std::move(z); }
 
 glm::vec2 profiler::scroll() const { return _impl->scroll; }
 
-void profiler::scroll_to(glm::vec2 s) { _impl->scroll = std::move(s); }
+void profiler::scroll_to(glm::vec2 s)
+{
+    _impl->scroll = std::move(s);
+    std::stringstream ss;
+    ss << std::this_thread::get_id();
+    auto max_scroll =
+        (prof::available_frames_count(ss.str()) - 1) * get_sample_size().x -
+        get_size().x;
+    if (_impl->scroll.x > max_scroll)
+    {
+        _impl->scroll.x = max_scroll;
+    }
+    if (_impl->scroll.x < 0)
+    {
+        _impl->scroll.x = 0;
+    }
+}
 
 void profiler::render()
 {
@@ -112,6 +129,12 @@ void profiler::render_frame(const prof::frame& f)
     framebuffer::unbind();
     graphics::set_viewport({ 0, 0 }, { get_size() });
     graphics::clear({ .1f, .1f, .1f, 1.0f });
+
+    if (core::window::get_active_window() == nullptr)
+    {
+        return;
+    }
+
     auto mouse_pos = core::window::get_active_window()->get_mouse_position();
 
     auto size = get_size();

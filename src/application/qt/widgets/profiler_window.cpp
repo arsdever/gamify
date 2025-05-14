@@ -45,6 +45,14 @@ void ProfilerWindow::impl::setup_profiler_widget()
     _this->connect(_widget,
                    &ProfilerWidget::frameSelected,
                    [ this ] { update_scroll_bars(); });
+    _this->connect(_widget,
+                   &ProfilerWidget::scrollChanged,
+                   [ this ]
+    {
+        auto b = _widget->blockSignals(true);
+        update_scroll_bars();
+        _widget->blockSignals(b);
+    });
 }
 
 void ProfilerWindow::impl::setup_scroll_bars()
@@ -83,6 +91,7 @@ void ProfilerWindow::impl::update_scroll_bars()
     {
         _scroll_barh->setRange(0, size.width() - widget_size.width());
         _scroll_barh->setVisible(true);
+        _scroll_barh->setValue(_widget->scroll().x);
     }
 
     if (size.height() <= _widget->height())
@@ -93,6 +102,7 @@ void ProfilerWindow::impl::update_scroll_bars()
     {
         _scroll_barv->setRange(0, size.height() - widget_size.height());
         _scroll_barv->setVisible(true);
+        _scroll_barh->setValue(_widget->scroll().y);
     }
 };
 

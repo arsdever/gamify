@@ -3,6 +3,7 @@
 #include <QWheelEvent>
 #include <QWindow>
 
+#include <GLFW/glfw3.h>
 #include <common/logging.hpp>
 #include <core/window.hpp>
 #include <tools/profiler/profiler.hpp>
@@ -20,6 +21,10 @@ struct ProfilerWidget::impl
 {
     QWidget* _window_widget = nullptr;
     std::shared_ptr<profiler> _profiler = nullptr;
+    std::optional<QPointF> _pan_start;
+
+    std::optional<std::variant<const prof::frame*, const prof::data_sample*>>
+        _tooltip_target;
 
     bool _frame_mode = false;
 };
@@ -65,22 +70,62 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
         emit widget->frameSelected();
     };
 
+    profiler->get_events()->mouse_press +=
+        [ widget, p = std::weak_ptr(profiler) ](auto me)
+    {
+        if (me.get_button() == 2)
+        {
+            widget->startPanning(QPointF(me.get_local_position().x, 0));
+        }
+    };
+
+    profiler->get_events()->mouse_release +=
+        [ widget, p = std::weak_ptr(profiler) ](auto me)
+    {
+        if (me.get_button() == 2)
+        {
+            widget->stopPanning(QPointF(me.get_local_position().x, 0));
+        }
+    };
+
     profiler->get_events()->mouse_move +=
         [ widget, p = std::weak_ptr(profiler) ](auto me)
     {
+        if (widget->_p->_pan_start.has_value())
+        {
+            if (me.get_buttons() & (1 << 2))
+            {
+                widget->stopPanning(QPointF(me.get_local_position().x, 0));
+                widget->startPanning(QPointF(me.get_local_position().x, 0));
+            }
+            else
+            {
+                widget->stopPanning(QPointF(me.get_local_position().x, 0));
+            }
+        }
+
         if (auto profiler = p.lock())
         {
             auto elem = profiler->get_at(me.get_local_position());
-            if (!elem.has_value())
+            if (widget->_p->_tooltip_target == elem)
             {
                 return;
             }
-            typename profiler::element_type element = elem.value();
 
+            widget->_p->_tooltip_target = elem;
+
+            if (!elem.has_value())
+            {
+                QToolTip::hideText();
+                return;
+            }
+
+            typename profiler::element_type element = elem.value();
             if (widget->_p->_frame_mode &&
                 std::holds_alternative<const prof::data_sample*>(element))
             {
                 auto data = std::get<const prof::data_sample*>(element);
+
                 QToolTip::showText(
                     QCursor::pos(),
                     QString::fromStdString(
@@ -88,27 +133,21 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
                                     data->name(),
                                     format_scaled(data->diff()),
                                     data->depth())),
-                    nullptr,
-                    {},
-                    5000);
+                    widget,
+                    {});
             }
-            else
+            else if (std::holds_alternative<const prof::frame*>(element))
             {
-                if (std::holds_alternative<const prof::frame*>(element))
-                {
-                    auto fp = std::get<const prof::frame*>(element);
-                    QToolTip::showText(
-                        QCursor::pos(),
-                        QString::fromStdString(std::format(
-                            "Frame: #{}\nDuration: {}",
-                            fp->get_id(),
-                            format_scaled(std::chrono::duration_cast<
-                                          std::chrono::microseconds>(
-                                fp->end() - fp->start())))),
-                        nullptr,
-                        {},
-                        5000);
-                }
+                auto fp = std::get<const prof::frame*>(element);
+                QToolTip::showText(QCursor::pos(),
+                                   QString::fromStdString(std::format(
+                                       "Frame: #{}\nDuration: {}",
+                                       fp->get_id(),
+                                       format_scaled(std::chrono::duration_cast<
+                                                     std::chrono::microseconds>(
+                                           fp->end() - fp->start())))),
+                                   widget,
+                                   {});
             }
         }
     };
@@ -153,6 +192,21 @@ void ProfilerWidget::wheelEvent(QWheelEvent* event)
     event->accept();
 }
 
+void ProfilerWidget::startPanning(QPointF position)
+{
+    _p->_pan_start = position;
+}
+
+void ProfilerWidget::stopPanning(QPointF position)
+{
+    if (_p->_pan_start.has_value())
+    {
+        auto delta = position - _p->_pan_start.value();
+        setScroll(scroll() + glm::dvec2 { -delta.x(), delta.y() });
+        _p->_pan_start.reset();
+    }
+}
+
 glm::dvec2 ProfilerWidget::zoom() const { return _p->_profiler->zoom(); }
 
 glm::dvec2 ProfilerWidget::scroll() const { return _p->_profiler->scroll(); }
@@ -175,7 +229,7 @@ QSize ProfilerWidget::sizeHint() const
                        .count();
     }
     glm::vec2 size =
-        glm::vec2(prof::available_frames_count(ss.str()), duration) *
+        glm::vec2(prof::available_frames_count(ss.str()) - 1, duration) *
         _p->_profiler->get_sample_size();
 
     return QSize(size.x, size.y);
@@ -195,4 +249,5 @@ void ProfilerWidget::setZoom(glm::dvec2 z)
 void ProfilerWidget::setScroll(glm::dvec2 s)
 {
     _p->_profiler->scroll_to(std::move(s));
+    scrollChanged();
 }
