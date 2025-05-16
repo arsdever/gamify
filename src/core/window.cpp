@@ -69,6 +69,7 @@ window::~window()
 
 void window::init()
 {
+    auto p = prof::profile(__FUNCTION__);
     if (_p->_glfw_window_handle != nullptr)
     {
         log()->error("The window is already initialized");
@@ -216,6 +217,7 @@ void window::move(size_t x, size_t y)
 
 void window::update()
 {
+    auto p = prof::profile(std::string(__FUNCTION__) + " " + get_title());
     if (_p->_glfw_window_handle == nullptr)
     {
         return;
