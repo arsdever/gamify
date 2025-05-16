@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>res/icons/overview.png</file>
+    <file>res/icons/play.png</file>
+    <file>res/icons/stop.png</file>
+    <file>res/icons/zoom_to_fit.png</file>
+</qresource>
+</RCC>

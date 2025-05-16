@@ -55,9 +55,6 @@ int main(int argc, char** argv)
     qt_window->resize(1280, 720);
     qt_window->show();
 
-    ProfilerWindow* profiler_window = new ProfilerWindow(qt_window);
-    profiler_window->show();
-
     int result = 0;
 
     game_context::init();
