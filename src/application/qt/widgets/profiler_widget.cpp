@@ -1,4 +1,5 @@
 #include <QLayout>
+#include <QToolBar>
 #include <QToolTip>
 #include <QWheelEvent>
 #include <QWindow>
@@ -26,6 +27,8 @@ struct ProfilerWidget::impl
     std::optional<std::variant<const prof::frame*, const prof::data_sample*>>
         _tooltip_target;
 
+    QToolBar* _toolbar = nullptr;
+
     bool _frame_mode = false;
 };
 
@@ -42,6 +45,44 @@ ProfilerWidget* ProfilerWidget::create(QWidget* parent)
     ProfilerWidget* widget = new ProfilerWidget(parent);
 
     widget->_p->_profiler = std::make_shared<profiler>();
+    widget->_p->_toolbar =
+        new QToolBar("Profiler Toolbar", widget->_p->_window_widget);
+
+    Q_INIT_RESOURCE(resources);
+    auto toolbar = widget->_p->_toolbar;
+    toolbar->addAction(QIcon(":/res/icons/zoom_to_fit.png"),
+                       "Reset zoom",
+                       [ widget ]() { widget->setZoom({ 1, 1 }); });
+    toolbar->addAction(QIcon(":/res/icons/overview.png"),
+                       "Overall view",
+                       [ widget ]() { widget->reset(); });
+    QAction* startAction = toolbar->addAction(
+        QIcon(":/res/icons/play.png"),
+        "Resume profiling");
+    QAction* stopAction = toolbar->addAction(
+        QIcon(":/res/icons/stop.png"),
+        "Pause profiling");
+    stopAction->setVisible(false);
+
+    connect(startAction,
+            &QAction::triggered,
+            [ widget, startAction, stopAction ]()
+    {
+        prof::start();
+        startAction->setVisible(false);
+        stopAction->setVisible(true);
+    });
+
+    connect(stopAction,
+            &QAction::triggered,
+            [ widget, startAction, stopAction ]()
+    {
+        prof::stop();
+        startAction->setVisible(true);
+        stopAction->setVisible(false);
+    });
+    widget->layout()->addWidget(toolbar);
+
     widget->_p->_profiler->init();
     auto wid = widget->_p->_profiler->get_native_handle();
 
@@ -167,28 +208,27 @@ void ProfilerWidget::wheelEvent(QWheelEvent* event)
     // Ctrl + Shift + Wheel = ZoomX
     // Wheel = ScrollY
     // Shift + Wheel = ScrollX
-    if (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier))
+    if (event->modifiers() & Qt::ControlModifier)
     {
-        profiler->set_zoom(zoom() *
-                           glm::dvec2 { event->angleDelta().y() / 72.0, 1.0 });
-    }
-    else if (event->modifiers() & Qt::ControlModifier)
-    {
-        profiler->set_zoom(zoom() *
-                           glm::dvec2 { 1.0, event->angleDelta().y() / 72.0 });
+        if (event->angleDelta().y() > 0)
+        {
+            setZoom(zoom() * 1.2);
+        }
+        else
+        {
+            setZoom(zoom() * 0.8);
+        }
     }
     else if (event->modifiers() & Qt::ShiftModifier)
     {
-        profiler->scroll_to(scroll() +
-                            glm::dvec2 { event->angleDelta().x() / 72.0, 1.0 });
+        setScroll(scroll() +
+                  glm::dvec2 { event->angleDelta().y() / 72.0, 0.0 });
     }
     else
     {
-        profiler->scroll_to(scroll() +
-                            glm::dvec2 { 0.0, event->angleDelta().y() / 72.0 });
+        setScroll(scroll() +
+                  glm::dvec2 { 0.0, event->angleDelta().y() / 72.0 });
     }
-    // _p->_scroll *= glm::vec2(event->angleDelta().x(),
-    // event->angleDelta().y()) / 72.0f;
     event->accept();
 }
 

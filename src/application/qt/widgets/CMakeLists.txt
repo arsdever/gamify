@@ -25,6 +25,7 @@ add_library(
 	scene_view_widget.cpp
 	spinbox.hpp
 	spinbox.cpp
+	resources.qrc
 	# vec3_widget.hpp
 	# vec3_widget.cpp
 )
