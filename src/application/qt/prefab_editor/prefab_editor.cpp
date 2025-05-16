@@ -64,7 +64,10 @@ int main(int argc, char** argv)
         auto p = prof::profile_frame("Main Loop");
 
         // Process events in the Qt main loop
-        app.processEvents();
+        {
+            auto qtp = prof::profile("Qt Main Loop");
+            app.processEvents();
+        }
 
         // Update the game context
         game_context::update();
