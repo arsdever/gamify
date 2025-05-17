@@ -72,7 +72,6 @@ protected:
     std::reference_wrapper<game_object> _game_object;
 
 private:
-    bool _is_enabled { true };
     metatype _type_info;
     std::vector<std::unique_ptr<property>> _properties;
     // For faster lookup

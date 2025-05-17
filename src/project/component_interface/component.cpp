@@ -20,7 +20,8 @@ component::component(std::string_view type_name, game_object& obj)
     add_property({ "is_enabled",
                    "Is Enabled",
                    "Enables or disables the component",
-                   bool {} });
+                   bool {} })
+        .set_value(true);
 }
 
 game_object& component::get_game_object() const { return _game_object; }
@@ -42,9 +43,15 @@ std::shared_ptr<component> component::get(std::string_view type_name)
     return _game_object.get().try_get(type_name);
 }
 
-void component::set_enabled(bool active) { _is_enabled = active; }
+void component::set_enabled(bool active)
+{
+    set_property_value("is_enabled", active);
+}
 
-bool component::is_enabled() const { return _is_enabled; }
+bool component::is_enabled() const
+{
+    return get_property_value<bool>("is_enabled");
+}
 
 bool component::set_property_value(std::string_view name, std::any value)
 {
