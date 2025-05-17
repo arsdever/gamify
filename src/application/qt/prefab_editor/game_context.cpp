@@ -2,6 +2,7 @@
 #include <common/logging.hpp>
 #include <graphics/graphics.hpp>
 #include <graphics/graphics_fwd.hpp>
+#include <prof/profiler.hpp>
 #include <project/component_interface/component.hpp>
 #include <project/components/camera.hpp>
 #include <project/components/mesh_filter.hpp>
@@ -11,6 +12,8 @@
 #include <project/scene.hpp>
 
 #include "game_context.hpp"
+
+#include "core/window.hpp"
 
 inline logger log() { return get_logger("game_context"); }
 
@@ -48,6 +51,7 @@ void game_context::render()
     {
         return;
     }
+    cam->set_render_size(core::window::get_active_window()->get_size());
     cam->render();
 }
 
