@@ -38,6 +38,12 @@ public:
     bool is_enabled() const;
 
     bool set_property_value(std::string_view name, std::any value);
+    template <typename T>
+    T get_property_value(std::string_view name) const
+    {
+        auto& prop = get_property(name);
+        return prop.get_value<T>();
+    }
 
     void for_each_property(const property_const_visitor_type& visitor) const;
     void for_each_property(const property_visitor_type& visitor);
