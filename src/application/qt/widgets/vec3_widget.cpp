@@ -10,7 +10,7 @@ namespace ui
 {
 struct Vec3Widget::Vec3WidgetPrivate
 {
-    glm::vec3 _value { 0 };
+    glm::dvec3 _value { 0 };
     QLabel* _label { nullptr };
     SpinBox* _xSpinBox { nullptr };
     SpinBox* _ySpinBox { nullptr };
@@ -108,7 +108,7 @@ void Vec3Widget::setLabel(const QString& label) { _p->_label->setText(label); }
 
 QString Vec3Widget::label() const { return _p->_label->text(); }
 
-void Vec3Widget::setRangeMin(glm::vec3 min)
+void Vec3Widget::setRangeMin(glm::dvec3 min)
 {
     auto oldMax = max();
     _p->_xSpinBox->setRange(min.x, oldMax.x);
@@ -116,7 +116,7 @@ void Vec3Widget::setRangeMin(glm::vec3 min)
     _p->_zSpinBox->setRange(min.z, oldMax.z);
 }
 
-void Vec3Widget::setRangeMax(glm::vec3 max)
+void Vec3Widget::setRangeMax(glm::dvec3 max)
 {
     auto oldMin = min();
     _p->_xSpinBox->setRange(oldMin.x, max.x);
@@ -124,52 +124,52 @@ void Vec3Widget::setRangeMax(glm::vec3 max)
     _p->_zSpinBox->setRange(oldMin.z, max.z);
 }
 
-glm::vec3 Vec3Widget::min() const
+glm::dvec3 Vec3Widget::min() const
 {
     return { _p->_xSpinBox->min(), _p->_ySpinBox->min(), _p->_zSpinBox->min() };
 }
 
-glm::vec3 Vec3Widget::max() const
+glm::dvec3 Vec3Widget::max() const
 {
     return { _p->_xSpinBox->max(), _p->_ySpinBox->max(), _p->_zSpinBox->max() };
 }
 
-void Vec3Widget::setStep(glm::vec3 step)
+void Vec3Widget::setStep(glm::dvec3 step)
 {
     _p->_xSpinBox->setStep(step.x);
     _p->_ySpinBox->setStep(step.y);
     _p->_zSpinBox->setStep(step.z);
 }
 
-glm::vec3 Vec3Widget::step() const
+glm::dvec3 Vec3Widget::step() const
 {
     return { _p->_xSpinBox->step(),
              _p->_ySpinBox->step(),
              _p->_zSpinBox->step() };
 }
 
-void Vec3Widget::setSingleStep(glm::vec3 step)
+void Vec3Widget::setSingleStep(glm::dvec3 step)
 {
     _p->_xSpinBox->setSingleStep(step.x);
     _p->_ySpinBox->setSingleStep(step.y);
     _p->_zSpinBox->setSingleStep(step.z);
 }
 
-glm::vec3 Vec3Widget::singleStep() const
+glm::dvec3 Vec3Widget::singleStep() const
 {
     return { _p->_xSpinBox->singleStep(),
              _p->_ySpinBox->singleStep(),
              _p->_zSpinBox->singleStep() };
 }
 
-void Vec3Widget::setPageStep(glm::vec3 step)
+void Vec3Widget::setPageStep(glm::dvec3 step)
 {
     _p->_xSpinBox->setPageStep(step.x);
     _p->_ySpinBox->setPageStep(step.y);
     _p->_zSpinBox->setPageStep(step.z);
 }
 
-glm::vec3 Vec3Widget::pageStep() const
+glm::dvec3 Vec3Widget::pageStep() const
 {
     return { _p->_xSpinBox->pageStep(),
              _p->_ySpinBox->pageStep(),
@@ -203,7 +203,7 @@ bool Vec3Widget::isAccelerated() const
     return _p->_xSpinBox->isAccelerated();
 }
 
-void Vec3Widget::setValue(glm::vec3 value, bool force)
+void Vec3Widget::setValue(glm::dvec3 value, bool force)
 {
     if (force || (_p->_value != value))
     {
@@ -221,5 +221,5 @@ void Vec3Widget::setValue(glm::vec3 value, bool force)
     }
 }
 
-glm::vec3 Vec3Widget::value() { return _p->_value; }
+glm::dvec3 Vec3Widget::value() { return _p->_value; }
 } // namespace ui

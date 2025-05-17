@@ -28,8 +28,5 @@ public:
     template <typename ST>
     void serialize(ST& s);
     void deserialize(const nlohmann::json& j);
-
-private:
-    std::vector<std::shared_ptr<graphics::material>> _materials;
 };
 } // namespace components

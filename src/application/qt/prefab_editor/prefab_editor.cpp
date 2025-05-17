@@ -4,12 +4,15 @@
 #include <common/main_thread_dispatcher.hpp>
 #include <core/input_system.hpp>
 #include <core/window.hpp>
+#include <prof/profiler.hpp>
 #include <scripting/backend.hpp>
 
+#include "application/qt/widgets/profiler_window.hpp"
 #include "graphics/graphics.hpp"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
+#include <application/qt/widgets/inspector_widget.hpp>
 
 #include "editor_main_window.hpp"
 #include "game_context.hpp"
@@ -18,13 +21,13 @@ int main(int argc, char** argv)
 {
     int exit_code;
 
+    glfwInit();
+
     QApplication app(argc, argv);
     auto qt_window = new EditorMainWindow();
     qt_window->setWindowTitle("Prefab Editor");
 
     common::main_thread_dispatcher::initialize();
-
-    glfwInit();
 
     auto gl_window = std::make_shared<core::window>();
 
@@ -58,15 +61,20 @@ int main(int argc, char** argv)
 
     while (qt_window->isVisible())
     {
+        auto p = prof::profile_frame("Main Loop");
+
         // Process events in the Qt main loop
-        app.processEvents();
+        {
+            auto qtp = prof::profile("Qt Main Loop");
+            app.processEvents();
+        }
 
         // Update the game context
         game_context::update();
         common::main_thread_dispatcher::run_all();
 
         // Process events in the GLFW main loop
-        gl_window->update();
+        core::window::visit_windows([](auto w) { w->update(); });
     }
 
     return result;

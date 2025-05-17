@@ -1,5 +1,6 @@
 add_library(
   ${PROJECT}_core STATIC
+  algo.hpp
   command_dispatcher.cpp
   command_dispatcher.hpp
   command.hpp

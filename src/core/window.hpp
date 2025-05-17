@@ -5,6 +5,7 @@
 #include "core/core_fwd.hpp"
 
 #include "common/event.hpp"
+#include "common/utils.hpp"
 #include "core/window_events.hpp"
 
 namespace core
@@ -16,7 +17,7 @@ namespace core
  * The window class itself represents a physical window that is open and
  * running.
  */
-class window : public std::enable_shared_from_this<window>
+class window : public enable_shared_from_base<window>
 {
 public:
     window();
@@ -36,6 +37,8 @@ public:
     glm::uvec2 get_position() const;
     void set_position(size_t x, size_t y);
     void move(size_t dx, size_t dy);
+
+    glm::uvec2 get_mouse_position() const;
 
     void update();
 
@@ -57,8 +60,12 @@ public:
     event<void(std::shared_ptr<window>)> on_user_initialize;
 
     static std::shared_ptr<window> get_main_window();
+    static std::shared_ptr<window> get_active_window();
 
     void* get_native_handle() const;
+
+    static void
+    visit_windows(std::function<void(std::shared_ptr<window>)> visitor);
 
 private:
     void setup_mouse_callbacks();
@@ -77,6 +84,7 @@ private:
     std::unique_ptr<window_private_data> _p { nullptr };
 
     static std::shared_ptr<window> _main_window;
+    static std::vector<std::weak_ptr<window>> _windows;
 };
 
 } // namespace core

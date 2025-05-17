@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <nlohmann/json.hpp>
+#include <prof/profiler.hpp>
 
 #include "project/components/camera.hpp"
 
@@ -19,10 +20,12 @@
 #include "project/components/mesh_renderer.hpp"
 #include "project/components/transform.hpp"
 #include "project/project_manager.hpp"
+#include "project/property.hpp"
 #include "project/scene.hpp"
 #include "project/serialization_utilities.hpp"
 #include "project/serializer.hpp"
 #include "project/serializer_json.hpp"
+
 
 using namespace serialization::utilities;
 
@@ -32,6 +35,18 @@ camera::camera(game_object& obj)
     : component("camera", obj)
 {
     _cameras.push_back(this);
+    add_property({ "is_main", "Is Main Camera", "bool", "Main camera flag" });
+    auto& fov = add_property(
+        { "field_of_view", "Field of View", "Field of view in degrees", .6 });
+    fov.value_changed += [ this ]() { _projection_matrix_dirty = true; };
+    add_property({ "is_orthogonal",
+                   "Is Orthogonal",
+                   "bool",
+                   "Orthographic projection flag" });
+    add_property({ "background_color",
+                   "Background Color",
+                   "dvec4",
+                   "Background color" });
 }
 
 camera& camera::operator=(camera&& obj) = default;
@@ -40,11 +55,11 @@ camera::~camera() { }
 
 void camera::set_fov(double fov)
 {
-    _field_of_view = fov;
+    param_fov() = fov;
     _projection_matrix_dirty = true;
 }
 
-double camera::get_fov() const { return _field_of_view; }
+double camera::get_fov() const { return param_fov().get_value<double>(); }
 
 void camera::set_orthogonal(bool ortho_flag)
 {
@@ -111,6 +126,7 @@ glm::dvec4 camera::get_background_color() const
 
 void camera::render()
 {
+    auto p = prof::profile(__FUNCTION__);
     graphics::set_viewport({ 0, 0 }, _render_size);
     setup_lights();
     render_on_private_texture();
@@ -138,6 +154,7 @@ void camera::render()
     //                         glm::vec2(_render_size),
     //                         glm::vec2(_render_size),
     //                         surface);
+    _framebuffer->unbind();
 }
 
 glm::mat4 camera::projection_matrix() const { return _projection_matrix; }
@@ -230,6 +247,11 @@ void camera::render_on_private_texture() const
                     auto materials = renderer->get_materials();
                     for (auto material : materials)
                     {
+                        if (!material)
+                        {
+                            continue;
+                        }
+
                         material->set_property_value(
                             "u_model_matrix",
                             glm::mat4(obj->get_transform().get_matrix()));
@@ -292,50 +314,6 @@ void camera::setup_lights()
     _lights_buffer->bind(0);
 }
 
-bool camera::set_property_value(std::string_view name,
-                                trivial_types::variant_t value)
-{
-    if (name == "render_size")
-    {
-        auto size = std::get<glm::uvec2>(value);
-        set_render_size(size.x, size.y);
-        return true;
-    }
-    else if (name == "field_of_view")
-    {
-        set_fov(std::get<double>(value));
-        return true;
-    }
-    else if (name == "is_orthogonal")
-    {
-        set_orthogonal(std::get<bool>(value));
-        return true;
-    }
-    else if (name == "background_color")
-    {
-        set_background_color(std::get<glm::dvec4>(value));
-        return true;
-    }
-    else if (name == "active_camera")
-    {
-        if (std::get<bool>(value))
-            set_active();
-        return true;
-    }
-
-    return base::set_property_value(name, value);
-}
-
-void camera::for_each_property(const property_visitor_type& visitor) const
-{
-    base::for_each_property(visitor);
-    visitor("render_size", "Render Size", _render_size);
-    visitor("field_of_view", "Field of View", _field_of_view);
-    visitor("is_orthogonal", "Is Orthogonal", _is_orthogonal);
-    visitor("background_color", "Background Color", _background_color);
-    visitor("active_camera", "Is Main Camera", is_enabled());
-}
-
 glm::mat4 camera::calculate_projection_matrix() const
 {
     // TODO: optimize with caching
@@ -356,7 +334,14 @@ glm::mat4 camera::calculate_projection_matrix() const
                           10000.0);
     }
 
-    return glm::perspective(_field_of_view, size.x / size.y, 0.1, 10000.0);
+    return glm::perspective(get_fov(), size.x / size.y, 0.1, 10000.0);
+}
+
+property& camera::param_fov() { return get_property("field_of_view"); }
+
+const property& camera::param_fov() const
+{
+    return get_property("field_of_view");
 }
 
 camera* camera::_active_camera { nullptr };

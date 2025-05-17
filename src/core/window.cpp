@@ -69,6 +69,7 @@ window::~window()
 
 void window::init()
 {
+    auto p = prof::profile(__FUNCTION__);
     if (_p->_glfw_window_handle != nullptr)
     {
         log()->error("The window is already initialized");
@@ -146,6 +147,7 @@ void window::init()
 
     configure_input_system();
     on_user_initialize(shared_from_this());
+    _windows.push_back(weak_from_this());
 }
 
 void window::activate() { glfwMakeContextCurrent(_p->_glfw_window_handle); }
@@ -188,6 +190,18 @@ void window::set_position(size_t x, size_t y) { move(x, y); }
 
 glm::uvec2 window::get_position() const { return _p->_position; }
 
+glm::uvec2 window::get_mouse_position() const
+{
+    if (_p->_glfw_window_handle == nullptr)
+    {
+        return { 0, 0 };
+    }
+
+    double x, y;
+    glfwGetCursorPos(_p->_glfw_window_handle, &x, &y);
+    return { x, y };
+}
+
 void window::move(size_t x, size_t y)
 {
     if (_p->_glfw_window_handle)
@@ -203,6 +217,7 @@ void window::move(size_t x, size_t y)
 
 void window::update()
 {
+    auto p = prof::profile(std::string(__FUNCTION__) + " " + get_title());
     if (_p->_glfw_window_handle == nullptr)
     {
         return;
@@ -288,6 +303,23 @@ std::shared_ptr<window_events> window::get_events() const
 }
 
 std::shared_ptr<window> window::get_main_window() { return _main_window; }
+
+std::shared_ptr<window> window::get_active_window()
+{
+    auto gwnd = glfwGetCurrentContext();
+    if (gwnd == nullptr)
+    {
+        return nullptr;
+    }
+
+    auto wnd = static_cast<window*>(glfwGetWindowUserPointer(gwnd));
+    if (wnd == nullptr)
+    {
+        return nullptr;
+    }
+
+    return wnd->shared_from_this();
+}
 
 void* window::get_native_handle() const
 {
@@ -519,6 +551,17 @@ void window::configure_input_system()
     });
 }
 
-std::shared_ptr<window> window::_main_window = nullptr;
+void window::visit_windows(std::function<void(std::shared_ptr<window>)> visitor)
+{
+    for (auto& w : _windows)
+    {
+        if (auto win = w.lock())
+        {
+            visitor(win);
+        }
+    }
+}
 
+std::shared_ptr<window> window::_main_window = nullptr;
+std::vector<std::weak_ptr<window>> window::_windows {};
 } // namespace core

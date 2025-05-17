@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 struct string_hash
 {
     using is_transparent = void; // enables heterogenous lookup
@@ -22,6 +23,41 @@ struct string_hash
         return hasher(string_view);
     }
 };
+
+template <typename Duration>
+std::string format_scaled(Duration d)
+{
+    using namespace std::chrono;
+    using namespace std::literals;
+
+    auto ns = duration_cast<nanoseconds>(d).count();
+    double value;
+    std::string suffix;
+
+    if (ns >= 1'000'000'000)
+    {
+        value = static_cast<double>(ns) / 1'000'000'000.0;
+        suffix = "s";
+    }
+    else if (ns >= 1'000'000)
+    {
+        value = static_cast<double>(ns) / 1'000'000.0;
+        suffix = "ms";
+    }
+    else if (ns >= 1'000)
+    {
+        value = static_cast<double>(ns) / 1'000.0;
+        suffix = "µs";
+    }
+    else
+    {
+        value = static_cast<double>(ns);
+        suffix = "ns";
+    }
+
+    // Use std::format to format the value with a reasonable default precision
+    return std::format("{:.3f}{}", value, suffix);
+}
 
 // geometry utils
 
@@ -176,6 +212,16 @@ public:
             return std::enable_shared_from_this<Base>::shared_from_this();
         }
         return std::static_pointer_cast<T>(shared_from_this<Base>());
+    }
+
+    template <class T = const Base>
+    std::shared_ptr<T> shared_from_this() const
+    {
+        if constexpr (std::is_same_v<std::remove_const_t<T>, Base>)
+        {
+            return std::enable_shared_from_this<Base>::shared_from_this();
+        }
+        return std::static_pointer_cast<T>(shared_from_this<const Base>());
     }
 };
 

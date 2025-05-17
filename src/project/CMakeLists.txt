@@ -4,6 +4,8 @@ set(INTERFACE_HEADERS
     object.hpp
     project_commands.hpp
     project_commands.cpp
+    property.hpp
+    property.cpp
     scene.hpp
     serialization_utilities.hpp
     serializer.hpp

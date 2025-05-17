@@ -1,4 +1,5 @@
 #include <nlohmann/json.hpp>
+#include <prof/profiler.hpp>
 
 #include "assets/asset_manager.hpp"
 
@@ -33,6 +34,7 @@ struct asset_manager::impl
 
     void scan_directory()
     {
+        auto p = prof::profile(__FUNCTION__);
         load_index_file();
         update_index();
         save_index();
@@ -43,6 +45,7 @@ struct asset_manager::impl
 
     void load_index_file()
     {
+        auto p = prof::profile(__FUNCTION__);
         auto project_path = common::filesystem::path(_impl->project_path);
         common::file index_file(
             std::string((project_path / "resources.json").full_path()));
@@ -57,17 +60,22 @@ struct asset_manager::impl
 
     void update_index()
     {
+        std::string function_name =
+            std::source_location::current().function_name();
+        auto p = prof::profile(function_name);
         auto project_path = common::filesystem::path(_impl->project_path);
         common::file index_file(
             std::string((project_path / "resources.json").full_path()));
-
         std::function<void(common::filesystem::path)> scan_dir;
         scan_dir = [ & ](common::filesystem::path path)
         {
+            auto p = prof::profile(function_name + "::scan_dir");
             common::directory dir(std::string(path.full_path()));
-            dir.visit_files(
-                [ this, scan_dir, path ](std::string file_path, bool is_dir)
+            dir.visit_files([ this, scan_dir, path, function_name ](
+                                std::string file_path, bool is_dir)
             {
+                auto p =
+                    prof::profile(function_name + "::scan_dir::visit_files");
                 if (is_dir)
                 {
                     if (file_path == "." || file_path == "..")
@@ -108,6 +116,7 @@ struct asset_manager::impl
 
     void save_index()
     {
+        auto p = prof::profile(__FUNCTION__);
         auto project_path = common::filesystem::path(_impl->project_path);
         common::file index_file(
             std::string((project_path / "resources.json").full_path()));
@@ -123,6 +132,7 @@ struct asset_manager::impl
 
     void resolve_dependencies()
     {
+        auto p = prof::profile(__FUNCTION__);
         for (const auto& [ base, deps ] : _index[ "requires" ].items())
         {
             for (const auto& dep : deps)
@@ -151,6 +161,7 @@ struct asset_manager::impl
 
     void resolve_no_lazy_load()
     {
+        auto p = prof::profile(__FUNCTION__);
         for (const auto& it : _index[ "no_lazy_load" ])
         {
             auto ast = _impl->_cache.find(std::stoull(it.get<std::string>()));
@@ -173,6 +184,7 @@ struct asset_manager::impl
                 project_path,
                 [ this ](std::string_view path, common::file_change_type change)
             {
+                auto p = prof::profile(__FUNCTION__);
                 std::string path_str { (common::filesystem::path(
                                             _impl->project_path) /
                                         common::filesystem::path(path))
@@ -218,12 +230,14 @@ struct asset_manager::impl
 
     void load_asset(asset& ast)
     {
+        auto p = prof::profile(__FUNCTION__);
         _importer.load_asset(ast);
         ast._on_modified();
     }
 
     void update_asset(asset& ast)
     {
+        auto p = prof::profile(__FUNCTION__);
         _importer.update_asset(ast);
         ast._on_modified();
     }
@@ -231,6 +245,7 @@ struct asset_manager::impl
     void apply_assets(
         std::function<void(std::string_view, std::shared_ptr<asset>)> func)
     {
+        auto p = prof::profile(__FUNCTION__);
         _cache.apply_assets([ func ](size_t id, std::shared_ptr<asset> ast)
         {
             std::string key = get_asset_key_by_id(id);

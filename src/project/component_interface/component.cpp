@@ -16,6 +16,11 @@ component::component(std::string_view type_name, game_object& obj)
 {
     set_name(std::string(type_name));
     _type_info = component_registry::get_type(type_name);
+
+    add_property({ "is_enabled",
+                   "Is Enabled",
+                   "Enables or disables the component",
+                   bool {} });
 }
 
 game_object& component::get_game_object() const { return _game_object; }
@@ -41,20 +46,34 @@ void component::set_enabled(bool active) { _is_enabled = active; }
 
 bool component::is_enabled() const { return _is_enabled; }
 
-bool component::set_property_value(std::string_view name,
-                                   trivial_types::variant_t value)
+bool component::set_property_value(std::string_view name, std::any value)
 {
-    if (name == "is_enabled")
-    {
-        set_enabled(std::get<bool>(value));
-        return true;
-    }
+    auto& prop = get_property(name);
+    prop.set_value(std::move(value));
     return false;
 }
 
-void component::for_each_property(const property_visitor_type& visitor) const
+void component::for_each_property(
+    const property_const_visitor_type& visitor) const
 {
-    visitor("is_enabled", "Is Enabled", _is_enabled);
+    for (const auto& prop : _properties)
+    {
+        if (!visitor(*prop))
+        {
+            break;
+        }
+    }
+}
+
+void component::for_each_property(const property_visitor_type& visitor)
+{
+    for (auto& prop : _properties)
+    {
+        if (!visitor(*prop))
+        {
+            break;
+        }
+    }
 }
 
 std::string component::name() const { return _type_info.name; }
@@ -88,6 +107,59 @@ bool component::can_cast(const metatype& to_type) const
 bool component::can_cast(std::string_view type_name) const
 {
     return can_cast(component_registry::get_type(type_name));
+}
+
+property& component::add_property(property&& prop)
+{
+    auto* p =
+        _properties.emplace_back(std::make_unique<property>(std::move(prop)))
+            .get();
+    _properties_lt.emplace(std::string(p->get_name()), *p);
+    return *p;
+}
+
+const property& component::get_property(std::string_view name) const
+{
+    auto* prop = try_get_property(name);
+    if (prop == nullptr)
+    {
+        throw std::runtime_error("Property not found");
+    }
+
+    return *prop;
+}
+
+const property* component::try_get_property(std::string_view name) const
+{
+    auto it = _properties_lt.find(std::string(name));
+    if (it != _properties_lt.end())
+    {
+        return &it->second;
+    }
+
+    return nullptr;
+}
+
+property& component::get_property(std::string_view name)
+{
+    auto* prop = try_get_property(name);
+    if (prop == nullptr)
+    {
+        throw std::runtime_error("Property not found");
+    }
+
+    return *prop;
+}
+
+property* component::try_get_property(std::string_view name)
+{
+    auto it = _properties_lt.find(std::string(name));
+    if (it != _properties_lt.end())
+    {
+        return &it->second;
+    }
+
+    return nullptr;
 }
 
 void component::on_init() { }

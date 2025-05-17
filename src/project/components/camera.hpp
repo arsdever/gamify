@@ -47,10 +47,6 @@ public:
     glm::mat4 view_matrix() const;
     glm::mat4 vp_matrix() const;
 
-    bool set_property_value(std::string_view name,
-                            trivial_types::variant_t value) override;
-    void for_each_property(const property_visitor_type& visitor) const override;
-
     static constexpr std::string_view type_name = "camera";
 
     template <typename ST>
@@ -69,11 +65,13 @@ private:
     void render_on_private_texture() const;
     void setup_lights();
 
+	property& param_fov();
+	const property& param_fov() const;
+
     glm::mat4 calculate_projection_matrix() const;
 
 private:
     glm::uvec2 _render_size { 1u };
-    double _field_of_view { .6 };
     bool _is_orthogonal { false };
     std::weak_ptr<graphics::texture> _user_render_texture {};
     glm::dvec4 _background_color { 0.0 };

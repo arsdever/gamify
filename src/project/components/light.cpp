@@ -15,25 +15,52 @@ namespace components
 light::light(game_object& obj)
     : component(type_name, obj)
 {
+    add_property(
+        { "color", "Color", "Light color", glm::dvec4(1.0, 1.0, 1.0, 1.0) });
+    add_property({ "intensity", "Intensity", "Light intensity", 1.0 });
+    add_property({ "radius", "Radius", "Light radius", 1.0 });
+    add_property({ "light_type",
+                   "Light Type",
+                   "Light type",
+                   static_cast<int>(type::OMNI) });
 }
 
 light::~light() = default;
 
-glm::dvec4 light::get_color() const { return _color; }
+glm::dvec4 light::get_color() const
+{
+    return get_property("color").get_value<glm::dvec4>();
+}
 
-void light::set_color(glm::dvec4 color) { _color = color; }
+void light::set_color(glm::dvec4 color) { get_property("color") = color; }
 
-float light::get_intensity() const { return _intensity; }
+float light::get_intensity() const
+{
+    return get_property("intensity").get_value<double>();
+}
 
-void light::set_intensity(float intensity) { _intensity = intensity; }
+void light::set_intensity(float intensity)
+{
+    get_property("intensity") = static_cast<double>(intensity);
+}
 
-double light::get_radius() const { return _radius; }
+double light::get_radius() const
+{
+    return get_property("radius").get_value<double>();
+}
 
-void light::set_radius(double radius) { _radius = radius; }
+void light::set_radius(double radius) { get_property("radius") = radius; }
 
-light::type light::get_type() const { return _light_type; }
+light::type light::get_type() const
+{
+    return static_cast<light::type>(
+        get_property("light_type").get_value<int>());
+}
 
-void light::set_type(type light_type) { _light_type = light_type; }
+void light::set_type(type light_type)
+{
+    get_property("light_type") = light_type;
+}
 
 template <>
 void light::serialize(json_serializer& j)

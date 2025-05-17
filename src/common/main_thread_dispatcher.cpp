@@ -1,4 +1,4 @@
-#include <stdexcept>
+#include <prof/profiler.hpp>
 
 #include "common/main_thread_dispatcher.hpp"
 
@@ -55,6 +55,7 @@ void main_thread_dispatcher::run_one()
 
 void main_thread_dispatcher::run_all()
 {
+    auto p = prof::profile(__FUNCTION__);
     decltype(_instance->_queue) tasks;
     {
         std::lock_guard<std::mutex> lock(_instance->_mutex);
