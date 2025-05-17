@@ -274,6 +274,7 @@ void InspectorWidget::resetInspector()
         });
 
         collapsibleWidget->setContentLayout(layout);
+        collapsibleWidget->setCollapsed(false);
         layout->setSpacing(0);
         layout->addItem(new QSpacerItem(
             0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding));

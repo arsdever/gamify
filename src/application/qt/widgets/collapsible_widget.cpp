@@ -104,4 +104,32 @@ void CollapsibleWidget::setContentLayout(QLayout* contentLayout)
     contentAnimation->setStartValue(0);
     contentAnimation->setEndValue(contentHeight);
 }
+
+void CollapsibleWidget::setCollapsed(bool collapsed)
+{
+    _p->_toggleButton->setChecked(collapsed);
+    _p->_toggleButton->click();
+}
+
+bool CollapsibleWidget::isCollapsed() const
+{
+    return _p->_toggleButton->isChecked();
+}
+
+void CollapsibleWidget::setTitle(const QString& title)
+{
+    _p->_toggleButton->setText(title);
+}
+
+QString CollapsibleWidget::title() const { return _p->_toggleButton->text(); }
+
+void CollapsibleWidget::setAnimationDuration(int duration)
+{
+    _p->_animationDuration = duration;
+}
+
+int CollapsibleWidget::animationDuration() const
+{
+    return _p->_animationDuration;
+}
 } // namespace ui

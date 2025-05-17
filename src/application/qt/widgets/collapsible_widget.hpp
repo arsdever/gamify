@@ -16,6 +16,15 @@ public:
     ~CollapsibleWidget() override;
     void setContentLayout(QLayout* contentLayout);
 
+    void setCollapsed(bool collapsed);
+    bool isCollapsed() const;
+
+    void setTitle(const QString& title);
+    QString title() const;
+
+    void setAnimationDuration(int duration);
+    int animationDuration() const;
+
 private:
     struct CollapsibleWidgetPrivate;
     std::unique_ptr<CollapsibleWidgetPrivate> _p;
