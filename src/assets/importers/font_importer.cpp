@@ -11,6 +11,7 @@ void font_importer::initialize_asset(asset& ast)
 
 void font_importer::read_asset_data(std::string_view asset_file)
 {
+    auto p = prof::profile(__PRETTY_FUNCTION__);
     _data->load(std::string(asset_file), 12.0f);
 }
 } // namespace assets

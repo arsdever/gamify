@@ -31,6 +31,8 @@
 #include <variant>
 #include <vector>
 
+#include <prof/profiler.hpp>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 

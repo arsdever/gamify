@@ -1,6 +1,5 @@
 #include <assets/asset_manager.hpp>
 #include <glad/gl.h>
-#include <prof/profiler.hpp>
 
 #include "graphics/renderer/renderer_3d.hpp"
 
@@ -20,7 +19,7 @@ void renderer_3d::draw_mesh(
     std::shared_ptr<graphics::mesh> m,
     std::vector<std::shared_ptr<graphics::material>> materials)
 {
-    auto sp = prof::profile(__FUNCTION__);
+    auto sp = prof::profile(__PRETTY_FUNCTION__);
 
     if (_vao.activate())
     {

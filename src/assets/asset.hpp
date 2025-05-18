@@ -9,6 +9,15 @@ namespace assets
 struct asset
 {
 public:
+    enum state
+    {
+        UNLOADED,
+        LOADING,
+        LOADED,
+        FINALIZED,
+    };
+
+public:
     asset(std::string file_path, std::function<void(asset&)> loader);
 
     std::string file_path() const;
@@ -27,6 +36,10 @@ public:
     bool is_of_type(size_t type_index);
 
     bool is_loaded() const;
+
+    bool is_ready() const;
+
+    state get_state() const;
 
     event<void()> _on_modified;
 
@@ -56,6 +69,11 @@ private:
      * @brief Used to load the asset data
      */
     std::function<void(asset&)> _loader;
+
+    /**
+     * @brief The state of the asset
+     */
+    state _state = UNLOADED;
 };
 
 template <typename T>

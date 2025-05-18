@@ -3,8 +3,6 @@
 #include <GLFW/glfw3.h>
 /* clang-format on */
 
-#include <prof/profiler.hpp>
-
 #include "tools/profiler/profiler.hpp"
 
 #include "assets/asset_manager.hpp"

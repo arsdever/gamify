@@ -4,7 +4,6 @@
 #include <common/main_thread_dispatcher.hpp>
 #include <core/input_system.hpp>
 #include <core/window.hpp>
-#include <prof/profiler.hpp>
 #include <scripting/backend.hpp>
 
 #include "application/qt/widgets/profiler_window.hpp"

@@ -162,7 +162,7 @@ void application::setup_console()
 
 void application::update_windows()
 {
-    auto p = prof::profile_frame(__FUNCTION__);
+    auto p = prof::profile_frame(__PRETTY_FUNCTION__);
     if (scene::get_active_scene())
     {
         scene::get_active_scene()->visit_root_objects([](auto obj)

@@ -44,6 +44,7 @@ void material_importer::initialize_asset(asset& ast)
 
 void material_importer::read_asset_data(std::string_view asset_file)
 {
+    auto p = prof::profile(__PRETTY_FUNCTION__);
     std::string content = common::file::read_all(asset_file);
     json mat_struct;
     try

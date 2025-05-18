@@ -6,7 +6,6 @@
 
 #include <application/qt/widgets/profiler_widget.hpp>
 #include <common/logging.hpp>
-#include <prof/profiler.hpp>
 #include <qgridlayout.h>
 #include <qtimer.h>
 

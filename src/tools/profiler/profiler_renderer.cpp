@@ -4,7 +4,6 @@
 #include <graphics/material.hpp>
 #include <graphics/mesh.hpp>
 #include <graphics/renderer/renderer_3d.hpp>
-#include <prof/profiler.hpp>
 
 #include "tools/profiler/profiler_renderer.hpp"
 

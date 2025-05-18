@@ -156,24 +156,32 @@ private:
 template <typename T>
 T file::read(size_t length)
 {
+    auto p = prof::profile(std::format("{}: allocate string", __FUNCTION__));
     T result;
     result.resize(length);
+    p.finish();
 
     static constexpr size_t result_element_size =
         sizeof(typename T::value_type);
 
+    p = prof::profile(std::format(
+        "{}: reading {} bytes", __FUNCTION__, length * result_element_size));
     size_t sz = read(reinterpret_cast<char*>(result.data()),
                      length * result_element_size);
+    p.finish();
 
     result.resize(sz / result_element_size);
 
     if constexpr (std::is_same_v<std::string, T>)
     {
+        p = prof::profile(
+            std::format("{}: removing \\r from string", __FUNCTION__));
         std::string::size_type pos = 0; // Must initialize
         while ((pos = result.find("\r\n", pos)) != std::string::npos)
         {
             result.erase(pos, 1);
         }
+        p.finish();
     }
 
     return result;
@@ -182,12 +190,16 @@ T file::read(size_t length)
 template <typename T>
 T file::read_all()
 {
+    auto p = prof::profile(std::format("{}: opening file", __FUNCTION__));
     if (!is_open())
         open(open_mode::read);
+    p.finish();
 
+    p = prof::profile(std::format("{}: getting file size", __FUNCTION__));
     static constexpr size_t result_element_size =
         sizeof(typename T::value_type);
     auto length = get_size() / result_element_size;
+    p.finish();
 
     return read<T>(length);
 }

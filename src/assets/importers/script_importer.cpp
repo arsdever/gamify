@@ -13,6 +13,7 @@ void script_importer::initialize_asset(asset& ast)
 
 void script_importer::read_asset_data(std::string_view asset_path)
 {
+    auto p = prof::profile(__PRETTY_FUNCTION__);
     scripting::backend::load_script(asset_path);
 }
 } // namespace assets

@@ -12,6 +12,7 @@ void texture_importer::initialize_asset(asset& ast)
 
 void texture_importer::read_asset_data(std::string_view asset_path)
 {
+    auto p = prof::profile(__PRETTY_FUNCTION__);
     _data->set_contents_from_file(asset_path);
 }
 } // namespace assets

@@ -26,6 +26,7 @@ public:
     {
         // Does nothing
     }
+    virtual float get_progress() const { return 0.0f; }
 };
 
 template <typename T>

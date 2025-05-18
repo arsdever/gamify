@@ -20,6 +20,7 @@ void shader_importer::initialize_asset(asset& ast)
 
 void shader_importer::read_asset_data(std::string_view asset_path)
 {
+    auto p = prof::profile(__PRETTY_FUNCTION__);
     common::file asset_file { std::string(asset_path) };
 
     if (!asset_file.exists())

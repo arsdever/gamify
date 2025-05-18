@@ -34,5 +34,9 @@ bool asset::is_of_type(size_t type_index)
     return _data.has_value() && (type_index == _data->type().hash_code());
 }
 
-bool asset::is_loaded() const { return _data.has_value(); }
+bool asset::is_loaded() const { return _state == LOADED; }
+
+bool asset::is_ready() const { return _state == FINALIZED; }
+
+asset::state asset::get_state() const { return _state; }
 } // namespace assets
